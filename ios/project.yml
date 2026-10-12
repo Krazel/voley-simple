@@ -15,12 +15,14 @@ targets:
     platform: iOS
     sources:
       - App
-    resources:
       - path: Web
         type: folder
+        buildPhase: resources
       - path: Audio
         type: folder
-      - Assets.xcassets
+        buildPhase: resources
+      - path: Assets.xcassets
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.krazel.voleysimple

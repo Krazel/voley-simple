@@ -18,3 +18,9 @@ test('mobile court fits 390 by 844 at current zoom and preserves pavilion sprite
  assert.equal(a.s,projectCourt(0,0,0,hall).s);
  for(const [x,y] of [[0,0],[8,16],[4,8],[3,12]]){const p=projectCourt(x,y,0,court),q=unprojectCourt(p.x,p.y,court);assert.ok(Math.abs(q.x-x)<1e-9&&Math.abs(q.y-y)<1e-9)}
 });
+
+test('mobile net and physical jump retain pavilion height in pixels per metre',()=>{
+ const a={...courtConfig('mobile'),zoom:2.25},b={...courtConfig('pavilion'),zoom:2.25};
+ const height=c=>projectCourt(4,8,0,c).y-projectCourt(4,8,c.netHeight/c.metresPerUnit,c).y;
+ assert.ok(Math.abs(height(a)-height(b))<1e-9);
+});

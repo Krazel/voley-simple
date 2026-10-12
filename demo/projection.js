@@ -1,7 +1,7 @@
 export function projectCourt(x,y,z=0,court=null){
  let point;
  if(court?.id==='mobile'){
-  const vertical=1.125*Math.sqrt(55**2-40**2);
+  const vertical=court.metresPerUnit*Math.sqrt(55**2-40**2);
   point={x:294.5+x*44,y:496+y*42-z*vertical,s:1.8*Math.sqrt(55**2-40**2)/155};
  }else if(court?.id==='pavilion'){
   const m=court.metresPerUnit;

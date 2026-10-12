@@ -4,9 +4,9 @@
   "bundleId": "com.krazel.voleysimple",
   "bundleResourceId": "7QC46XVHP8",
   "teamId": "B2X6D3A9J9",
-  "marketingVersion": "0.18",
+  "marketingVersion": "0.19",
   "buildNumber": 1,
-  "purpose": "Owner-authorized TestFlight delivery with floating controls",
+  "purpose": "Owner-authorized TestFlight delivery with tap targeting and three power levels",
   "locale": "es-ES",
   "sku": "KRAZEL-VOLEY-SIMPLE-IOS"
 }

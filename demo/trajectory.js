@@ -100,6 +100,11 @@ export function trajectoryPlan(player,ball,request,court=courtConfig()){
  if(assist)time=Math.max(time,clearanceTime);
  const fitted=reachable?fitFlight(origin,target,requestedSpeed,time,request.screenPoints,court,assist?clearanceTime:0):{time,error:null};
  time=Math.max(.05,fitted.time);
+ // Tap strength controls forward pace while keeping the chosen landing point
+ // and the legal net arc. Soft shots take a higher, longer flight.
+ if([1,2,3].includes(request.tapLevel)&&reachable){
+  time=Math.min(maxTime||Infinity,time*[0,1.15,1.07,1][request.tapLevel]);
+ }
  const vx=(actualTarget.x-origin.x)/time,vy=(actualTarget.y-origin.y)/time,vz=-h/time+.5*g*time;
  const actualSpeed=Math.hypot(vx,vy,vz),pass=target.y>8&&target.y<16&&target.x>0&&target.x<8;
  const out=target.x<0||target.x>8||target.y<0||target.y>16;

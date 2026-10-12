@@ -26,12 +26,16 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
 .game-shell{-webkit-touch-callout:none}input,textarea,[contenteditable=true]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 
 #jump-button{pointer-events:auto}
-#move-pad{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:#f6f7ef55;border:2px solid #ffffffa8;display:flex;align-items:center;justify-content:center}#move-pad[hidden]{display:none}#move-pad>span{font-size:36px;color:#eaf5ff;text-shadow:0 2px 8px #16314855}.bottom-controls{justify-content:flex-end}.control-tip{margin-right:auto}.game-shell[data-handedness="left"] .bottom-controls{flex-direction:row-reverse}.overlay{z-index:5}</style>
+#move-pad{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:#f6f7ef55;border:2px solid #ffffffa8;display:flex;align-items:center;justify-content:center}#move-pad[hidden]{display:none}#move-pad>span{font-size:36px;color:#eaf5ff;text-shadow:0 2px 8px #16314855}.bottom-controls{justify-content:flex-end}.control-tip{margin-right:auto}.game-shell[data-handedness="left"] .bottom-controls{flex-direction:row-reverse}.overlay{z-index:5}#action{display:none}.bottom-controls{left:auto;right:16px;bottom:max(20px,env(safe-area-inset-bottom));display:grid;grid-template-columns:84px 88px;gap:12px}.bottom-controls .control-tip{display:none}.simple-button{touch-action:none;pointer-events:auto;border:2px solid #c9e4ff;border-radius:20px;background:#164fa6;color:white;min-height:58px;font-weight:800;font-size:12px;box-shadow:0 4px 0 #103469}#hit-button{min-height:88px;background:#eaa137;color:#182b46;font-size:15px;border-color:#ffdc94}#jump-button{width:88px;height:88px;pointer-events:auto}.game-shell[data-handedness="left"] .bottom-controls{left:16px;right:auto;direction:rtl}.simple-button:active,#jump-button:active{transform:translateY(3px);box-shadow:none}
+#tap-marker{position:absolute;width:36px;height:36px;border:3px solid #ffe59c;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;background:#ffc65a44;box-shadow:0 0 14px #fff4b7;z-index:3}#tap-marker[hidden]{display:none}
+
+#tap-marker{display:grid;place-items:center;color:#fff;font-size:18px;font-weight:900;text-shadow:0 1px 3px #182b46}#tap-marker[data-level='2']{border-color:#ffb456;background:#e8973055}#tap-marker[data-level='3']{border-color:#ff754a;background:#ee593966}
+</style>
 </head>
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.18</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.19</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
@@ -44,12 +48,12 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
   <div class="hud"><button id="sound" class="icon-button sound-button" aria-label="Silenciar efectos" aria-pressed="true">♪</button><div class="score" aria-label="Marcador"><span class="team-score"><small>TÚ + BOT</small><b id="score-blue">0</b></span><span class="separator">:</span><span class="team-score orange"><small>RIVALES</small><b id="score-orange">0</b></span></div><button id="pause" class="icon-button" aria-label="Pausar partido" disabled>Ⅱ</button></div>
   <div id="callout" class="callout" aria-live="polite">1 CONTRA 1 · UN BOT</div>
   <div id="rally" class="rally-line">PRIMERO A 7</div>
-  <div class="bottom-controls"><div class="control-tip">Toque: dash<br>Botón: salto<br>Trazo cerca: golpe</div><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
-  <div id="move-pad" class="drag-hint" hidden aria-label="Control flotante de movimiento"><span>●</span></div><div id="overlay" class="overlay">
+  <div class="bottom-controls"><div class="control-tip">Arrastra para mover<br>Pulsa para golpear</div><button id="dash-button" class="simple-button">DASH</button><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
+  <div id="tap-marker" hidden aria-hidden="true"></div><div id="move-pad" class="drag-hint" hidden aria-label="Control flotante de movimiento"><span>●</span></div><div id="overlay" class="overlay">
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
-      <p id="modal-copy">MOVER o WASD para moverte. Toque breve: dash al moverte. Pulsa el botón SALTO para saltar. Cerca, traza hacia donde quieres que caiga: el golpe añade un arco para superar la red.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). Toca la cancha rival: el balón va hacia ese punto. Toca a tu compañera para pasarle en 2v2. SALTO salta y DASH acelera. 1 toque flojo, 2 fuerte, 3 muy fuerte: repite rápido cerca del mismo punto. Puedes prepararlo antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
@@ -244,6 +248,11 @@ function trajectoryPlan(player,ball,request,court=courtConfig()){
  if(assist)time=Math.max(time,clearanceTime);
  const fitted=reachable?fitFlight(origin,target,requestedSpeed,time,request.screenPoints,court,assist?clearanceTime:0):{time,error:null};
  time=Math.max(.05,fitted.time);
+ // Tap strength controls forward pace while keeping the chosen landing point
+ // and the legal net arc. Soft shots take a higher, longer flight.
+ if([1,2,3].includes(request.tapLevel)&&reachable){
+  time=Math.min(maxTime||Infinity,time*[0,1.15,1.07,1][request.tapLevel]);
+ }
  const vx=(actualTarget.x-origin.x)/time,vy=(actualTarget.y-origin.y)/time,vz=-h/time+.5*g*time;
  const actualSpeed=Math.hypot(vx,vy,vz),pass=target.y>8&&target.y<16&&target.x>0&&target.x<8;
  const out=target.x<0||target.x>8||target.y<0||target.y>16;
@@ -354,7 +363,7 @@ class Match {
  }
  humanTargetHit(request){
   if(!request||!Number.isFinite(request.target?.x+request.target?.y))return null;
-  const copy={target:{...request.target},points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
+  const copy={target:{...request.target},tapLevel:request.tapLevel,points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
   if(this.canHumanHit()||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
   if(!this.canHumanAim())return null;
   this.pendingHit={request:copy,expires:this.time+.2};return 'buffered';
@@ -666,6 +675,25 @@ function touchRole(type,x,width,handedness,move){
  const movementSide=handedness==='left'?x>=width/2:x<width/2;
  return movementSide?'move':'action';
 }
+function simpleTarget(players,ball,pass=false){
+ const partner=players.find(p=>p.team===0&&p.id!==0);
+ if(pass&&partner)return {x:Math.max(.8,Math.min(7.2,partner.x)),y:Math.max(9.2,Math.min(14.5,partner.y))};
+ const rivals=players.filter(p=>p.team===1);
+ const targets=[{x:1.6,y:3.8},{x:4,y:3.8},{x:6.4,y:3.8}];
+ return targets.sort((a,b)=>{
+  const space=t=>Math.min(...rivals.map(p=>Math.hypot(p.x-t.x,p.y-t.y)),10)-Math.abs(t.x-ball.x)*.12;
+  return space(b)-space(a);
+ })[0];
+}
+function tapTarget(world,partnerHit){
+ if(partnerHit)return {kind:'pass',receiver:partnerHit.id,target:{x:partnerHit.x,y:partnerHit.y}};
+ if(world.x>=0&&world.x<=8&&world.y>=0&&world.y<8)return {kind:'attack',target:{...world}};
+ return null;
+}
+function groupTap(previous,request,point,now){
+ const same=previous&&now-previous.lastTap<=240&&now-previous.firstTap<=480&&previous.kind===request.kind&&previous.receiver===request.receiver&&Math.hypot(point.x-previous.screen.x,point.y-previous.screen.y)<=36;
+ return same?{...previous,level:Math.min(3,previous.level+1),lastTap:now,until:now+600,commitAt:now+220}:{...request,screen:{...point},level:1,firstTap:now,lastTap:now,until:now+600,commitAt:now+220};
+}
 function dragPower(direction,span=130){
  if(!direction)return .55;
  return Math.max(.02,Math.min(1,Math.hypot(direction.x,direction.y)/Math.max(40,span)));
@@ -862,6 +890,22 @@ const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
+let simpleRequest=null,tapFeedback=null;
+function simpleHit(request,point){
+ if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ simpleRequest=groupTap(simpleRequest,request,point,performance.now());
+ tapFeedback={target:simpleRequest.target,level:simpleRequest.level,until:performance.now()+900};
+ message((request.kind==='pass'?'PASE':'GOLPE')+' · '+['','1 · FLOJO','2 · FUERTE','3 · MUY FUERTE'][simpleRequest.level],.6);
+}
+function updateSimpleHit(){
+ if(!simpleRequest)return;
+ if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
+ if((simpleRequest.level===3||performance.now()>=simpleRequest.commitAt)&&match.canHumanHit()){
+  const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
+  const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
+  const tapLevel=simpleRequest.level;simpleRequest=null;match.humanTargetHit({target,points:[],tapLevel});
+ }
+}
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
 const poseHeights=[155,169,169,155,195,185,170,142];
 const animations=Array.from({length:4},()=>({frame:0,previous:0,fade:1,lean:0,stride:0,pose:{lean:0,bounce:0,scaleX:1,scaleY:1}}));
@@ -1010,7 +1054,17 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
+ const world=unproject(point.x/canvasRect.width*viewWidth,point.y/canvasRect.height*viewHeight);
+ const partner=match.activePlayers.find(p=>{
+  if(p.team!==0||p.id===0)return false;
+  const shown=renderPlayers[p.id]||p,foot=project(shown.x,shown.y,shown.z);
+  const sx=foot.x/viewWidth*canvasRect.width,sy=foot.y/viewHeight*canvasRect.height;
+  return Math.abs(point.x-sx)<32&&point.y>=sy-90&&point.y<=sy+20;
+ });
+ const request=tapTarget(world,partner);
+ if(request){e.preventDefault();simpleHit(request,point);return}
  const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
+ if(e.pointerType!=='mouse'&&role==='action')return;
  e.preventDefault();canvas.focus({preventScroll:true});
  if(controls.down(e.pointerId,e.pointerType,point,role)){surface.setPointerCapture(e.pointerId);syncMovePad()}
 });
@@ -1057,7 +1111,7 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Toque breve: dash al moverte. Pulsa SALTO para saltar. Cerca, traza y suelta en el destino; el golpe añade el arco sobre la red.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Toca la cancha rival para apuntar o tu compañera para pasar. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
@@ -1311,7 +1365,7 @@ function render(){
  canvas.dataset.practice=String(match.practice);
  canvas.dataset.lastTarget=match.lastTargetPlan?JSON.stringify(match.lastTargetPlan.requestedTarget):'';
  setText(ui.rally,match.phase==='rally'?(match.rally===0?'SAQUE':(match.autoplay?(match.lastTeam===0?'AZUL':'NARANJA'):match.lastTeam===0?'VUESTRO EQUIPO':'RIVALES')+' · TOQUE '+match.touches+'/3'):match.phase==='point'?'SIGUIENTE SAQUE EN '+Math.ceil(match.timer):match.phase==='countdown'?'SAQUE EN '+Math.ceil(match.timer):match.phase==='finished'?'PARTIDO TERMINADO':'PRIMERO A 7');
- if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · DIBUJA Y SUELTA');
+ if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · TOCA TU DESTINO');
  ui.callout.style.opacity=performance.now()<calloutUntil||match.phase==='ready'?'1':'.3';
 }
 function loop(now){
@@ -1344,7 +1398,10 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
- syncMovePad();
+ updateSimpleHit();syncMovePad();
+ const marker=document.getElementById('tap-marker');
+ marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
+ if(!marker.hidden){const p=project(tapFeedback.target.x,tapFeedback.target.y);marker.style.left=(p.x/viewWidth*100)+'%';marker.style.top=(p.y/viewHeight*100)+'%';marker.textContent=String(tapFeedback.level);marker.dataset.level=tapFeedback.level}
  const renderStart=performance.now();render();
  if(!document.hidden&&match.phase==='rally'){frameSamples.push(frameMs);renderSamples.push(performance.now()-renderStart)}
  if(now-lastMetrics>2000&&frameSamples.length){
@@ -1367,6 +1424,11 @@ jumpButton.addEventListener('pointerdown',e=>{
  if(!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
 });
 jumpButton.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
+for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
+ const button=document.getElementById(id);
+ button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
+}
 
 })();</script>
 </body></html>

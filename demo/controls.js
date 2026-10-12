@@ -4,6 +4,25 @@ export function touchRole(type,x,width,handedness,move){
  const movementSide=handedness==='left'?x>=width/2:x<width/2;
  return movementSide?'move':'action';
 }
+export function simpleTarget(players,ball,pass=false){
+ const partner=players.find(p=>p.team===0&&p.id!==0);
+ if(pass&&partner)return {x:Math.max(.8,Math.min(7.2,partner.x)),y:Math.max(9.2,Math.min(14.5,partner.y))};
+ const rivals=players.filter(p=>p.team===1);
+ const targets=[{x:1.6,y:3.8},{x:4,y:3.8},{x:6.4,y:3.8}];
+ return targets.sort((a,b)=>{
+  const space=t=>Math.min(...rivals.map(p=>Math.hypot(p.x-t.x,p.y-t.y)),10)-Math.abs(t.x-ball.x)*.12;
+  return space(b)-space(a);
+ })[0];
+}
+export function tapTarget(world,partnerHit){
+ if(partnerHit)return {kind:'pass',receiver:partnerHit.id,target:{x:partnerHit.x,y:partnerHit.y}};
+ if(world.x>=0&&world.x<=8&&world.y>=0&&world.y<8)return {kind:'attack',target:{...world}};
+ return null;
+}
+export function groupTap(previous,request,point,now){
+ const same=previous&&now-previous.lastTap<=240&&now-previous.firstTap<=480&&previous.kind===request.kind&&previous.receiver===request.receiver&&Math.hypot(point.x-previous.screen.x,point.y-previous.screen.y)<=36;
+ return same?{...previous,level:Math.min(3,previous.level+1),lastTap:now,until:now+600,commitAt:now+220}:{...request,screen:{...point},level:1,firstTap:now,lastTap:now,until:now+600,commitAt:now+220};
+}
 export function dragPower(direction,span=130){
  if(!direction)return .55;
  return Math.max(.02,Math.min(1,Math.hypot(direction.x,direction.y)/Math.max(40,span)));

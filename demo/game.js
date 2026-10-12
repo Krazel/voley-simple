@@ -1,7 +1,7 @@
 import {drawPavilion,drawMobileCourt} from './pavilion.js';
 import {courtConfig} from './maps.js';
 import {Match,clamp} from './engine.js';
-import {StrokeControls,touchRole} from './controls.js';
+import {StrokeControls,touchRole,tapTarget,groupTap} from './controls.js';
 import {trajectoryPlan,flightPreview} from './trajectory.js';
 import {projectCourt,unprojectCourt} from './projection.js';
 import {animationFrame,captureMotion,interpolateMotion,animatePose} from './animation.js';
@@ -12,6 +12,22 @@ const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
+let simpleRequest=null,tapFeedback=null;
+function simpleHit(request,point){
+ if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ simpleRequest=groupTap(simpleRequest,request,point,performance.now());
+ tapFeedback={target:simpleRequest.target,level:simpleRequest.level,until:performance.now()+900};
+ message((request.kind==='pass'?'PASE':'GOLPE')+' · '+['','1 · FLOJO','2 · FUERTE','3 · MUY FUERTE'][simpleRequest.level],.6);
+}
+function updateSimpleHit(){
+ if(!simpleRequest)return;
+ if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
+ if((simpleRequest.level===3||performance.now()>=simpleRequest.commitAt)&&match.canHumanHit()){
+  const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
+  const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
+  const tapLevel=simpleRequest.level;simpleRequest=null;match.humanTargetHit({target,points:[],tapLevel});
+ }
+}
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
 const poseHeights=[155,169,169,155,195,185,170,142];
 const animations=Array.from({length:4},()=>({frame:0,previous:0,fade:1,lean:0,stride:0,pose:{lean:0,bounce:0,scaleX:1,scaleY:1}}));
@@ -160,7 +176,17 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
+ const world=unproject(point.x/canvasRect.width*viewWidth,point.y/canvasRect.height*viewHeight);
+ const partner=match.activePlayers.find(p=>{
+  if(p.team!==0||p.id===0)return false;
+  const shown=renderPlayers[p.id]||p,foot=project(shown.x,shown.y,shown.z);
+  const sx=foot.x/viewWidth*canvasRect.width,sy=foot.y/viewHeight*canvasRect.height;
+  return Math.abs(point.x-sx)<32&&point.y>=sy-90&&point.y<=sy+20;
+ });
+ const request=tapTarget(world,partner);
+ if(request){e.preventDefault();simpleHit(request,point);return}
  const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
+ if(e.pointerType!=='mouse'&&role==='action')return;
  e.preventDefault();canvas.focus({preventScroll:true});
  if(controls.down(e.pointerId,e.pointerType,point,role)){surface.setPointerCapture(e.pointerId);syncMovePad()}
 });
@@ -207,7 +233,7 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Toque breve: dash al moverte. Pulsa SALTO para saltar. Cerca, traza y suelta en el destino; el golpe añade el arco sobre la red.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Toca la cancha rival para apuntar o tu compañera para pasar. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
@@ -461,7 +487,7 @@ function render(){
  canvas.dataset.practice=String(match.practice);
  canvas.dataset.lastTarget=match.lastTargetPlan?JSON.stringify(match.lastTargetPlan.requestedTarget):'';
  setText(ui.rally,match.phase==='rally'?(match.rally===0?'SAQUE':(match.autoplay?(match.lastTeam===0?'AZUL':'NARANJA'):match.lastTeam===0?'VUESTRO EQUIPO':'RIVALES')+' · TOQUE '+match.touches+'/3'):match.phase==='point'?'SIGUIENTE SAQUE EN '+Math.ceil(match.timer):match.phase==='countdown'?'SAQUE EN '+Math.ceil(match.timer):match.phase==='finished'?'PARTIDO TERMINADO':'PRIMERO A 7');
- if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · DIBUJA Y SUELTA');
+ if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · TOCA TU DESTINO');
  ui.callout.style.opacity=performance.now()<calloutUntil||match.phase==='ready'?'1':'.3';
 }
 function loop(now){
@@ -494,7 +520,10 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
- syncMovePad();
+ updateSimpleHit();syncMovePad();
+ const marker=document.getElementById('tap-marker');
+ marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
+ if(!marker.hidden){const p=project(tapFeedback.target.x,tapFeedback.target.y);marker.style.left=(p.x/viewWidth*100)+'%';marker.style.top=(p.y/viewHeight*100)+'%';marker.textContent=String(tapFeedback.level);marker.dataset.level=tapFeedback.level}
  const renderStart=performance.now();render();
  if(!document.hidden&&match.phase==='rally'){frameSamples.push(frameMs);renderSamples.push(performance.now()-renderStart)}
  if(now-lastMetrics>2000&&frameSamples.length){
@@ -517,3 +546,8 @@ jumpButton.addEventListener('pointerdown',e=>{
  if(!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
 });
 jumpButton.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
+for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
+ const button=document.getElementById(id);
+ button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
+}

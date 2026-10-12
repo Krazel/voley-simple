@@ -1,0 +1,34 @@
+name: VoleySimple
+options:
+  bundleIdPrefix: com.krazel
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    MARKETING_VERSION: "0.17"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+targets:
+  VoleySimple:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    resources:
+      - path: Web
+        type: folder
+      - path: Audio
+        type: folder
+      - Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.krazel.voleysimple
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+schemes:
+  VoleySimple:
+    build:
+      targets:
+        VoleySimple: all

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#142746"><title>Vóley · Demo 1v1 y 2v2</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="layout">
+<aside class="intro">
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.16</span></div>
+  <h1>Nos vemos<br>en la <em>cancha.</em></h1>
+  <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
+  <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
+  <div class="instructions"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span> o flechas para moverte</span></p><p><kbd>Clic / toque</kbd><span> Breve: dash en tu movimiento</span></p><p><kbd>Arrastrar</kbd><span> Cerca del balón: traza y suelta en el destino</span></p><p><kbd>Arrastrar ↑</kbd><span> Con el balón lejos: salto al soltar</span></p><p><kbd>Espacio</kbd><span> Dash al moverte</span><kbd>Shift</kbd><span>Dash</span></p></div>
+  <p class="note">Un trazo largo y recto pide más rapidez. La línea de color muestra la trayectoria real con gravedad; naranja avisa de red, fuera o alcance. Empezar detrás de ti no suma fuerza.<br>Móvil: un dedo en MOVER y otro para el gesto. Quieto, el toque no hace dash. En 2v2 puedes pasar suave a tu compañera.</p>
+  <footer>Primero a 7 · <a href="./animaciones.html">Animaciones</a> · <a href="./voley-0.12.html">Versión anterior</a></footer>
+</aside>
+<section class="game-shell" aria-label="Juego de vóley 1v1 o 2v2">
+  <canvas id="game" width="941" height="1672" tabindex="0" aria-label="Cancha. WASD mueve, Espacio o Shift hace dash. Traza cerca del balón y suelta en el destino; botón SALTO para saltar."></canvas>
+  <div class="hud"><button id="sound" class="icon-button sound-button" aria-label="Silenciar efectos" aria-pressed="true">♪</button><div class="score" aria-label="Marcador"><span class="team-score"><small>TÚ + BOT</small><b id="score-blue">0</b></span><span class="separator">:</span><span class="team-score orange"><small>RIVALES</small><b id="score-orange">0</b></span></div><button id="pause" class="icon-button" aria-label="Pausar partido" disabled>Ⅱ</button></div>
+  <div id="callout" class="callout" aria-live="polite">1 CONTRA 1 · UN BOT</div>
+  <div id="rally" class="rally-line">PRIMERO A 7</div>
+  <div class="bottom-controls"><div id="move-pad" class="drag-hint" aria-label="Zona táctil de movimiento"><span>✥</span><strong>MOVER</strong><small>un dedo · WASD</small></div><div class="control-tip">Toque: dash<br>Botón: salto<br>Trazo cerca: golpe</div><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
+  <div id="overlay" class="overlay">
+    <div class="modal">
+      <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
+      <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
+      <p id="modal-copy">MOVER o WASD para moverte. Toque breve: dash al moverte. Pulsa el botón SALTO para saltar. Cerca, traza hacia donde quieres que caiga: el golpe añade un arco para superar la red.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
+      <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
+      <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
+      <label class="mode-choice">Formato <select id="mode" aria-label="Formato de partido"><option value="1v1" selected>1 contra 1 · un bot</option><option value="2v2">2 contra 2 · tres bots</option></select></label>
+      <small class="map-note">Cambiar mapa o formato inicia otro partido.</small>
+      <button id="play" class="primary" disabled>Cargando cancha…</button>
+      <button id="watch" class="secondary" disabled>Ver partido de bots</button>
+      <button id="practice" class="secondary" disabled>Practicar golpes · balón preparado</button>
+      <button id="restart" class="secondary" hidden>Empezar otro partido</button>
+      <div id="modal-foot">Primero a 7 · Movimiento + acción manual</div>
+    </div>
+  </div>
+  <span id="match-status" class="sr-only" role="status"></span>
+</section>
+</main>
+<script type="module" src="./game.js"></script>
+</body></html>

@@ -1,0 +1,10 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vóley · Animación por imágenes</title><link rel="stylesheet" href="./animation-review.css"></head><body>
+<main><header><div class="eyebrow">KRAZEL GAMES · ANIMACIÓN POR IMÁGENES</div><h1>Un dibujo en cada fotograma.</h1><p>Dos secuencias nuevas del jugador azul. Mira el movimiento o detente en cualquier dibujo.</p></header>
+<section class="toolbar" aria-label="Elegir animación"><div id="clips" class="clips"></div><div class="options"><label>Velocidad <select id="speed"><option value="1" selected>Normal</option><option value="0.5">½ · cámara lenta</option><option value="0.25">¼ · detalle</option></select></label><span id="frame-count">Cargando dibujos…</span><label><input id="guides" type="checkbox"> Mostrar eje de apoyo</label></div></section>
+<div class="stages"><section class="stage"><div class="badge">SPRITES · JUGADOR AZUL</div><div class="scene"><div class="floor"></div><canvas id="sprite" width="720" height="760" aria-label="Animación por imágenes del jugador azul"></canvas></div><div class="caption"><strong id="phase">Cargando imágenes…</strong><span id="counter">1 / 8</span></div></section></div>
+<section class="playback" aria-label="Reproducción"><button id="play" disabled>Pausar</button><button id="step" aria-label="Avanzar un dibujo" disabled>+ 1 dibujo</button><input id="timeline" type="range" min="0" max="7" value="0" step="1" aria-label="Fotograma"><output id="time">0,00 s</output></section>
+<div id="filmstrip" class="filmstrip" aria-label="Dibujos de la secuencia"></div>
+<p class="review-note">Cabeza y cuerpo acompañan juntos la zancada y el remate. El peinado conserva el mismo dibujo; el cuello permanece unido mientras el conjunto se balancea suavemente.</p><footer><a href="./voley-offline.html">Volver al partido</a><span>2 secuencias · movimiento conjunto · revisión local</span></footer></main><script type="module" src="./animation-review.js"></script></body></html>
+
+
+

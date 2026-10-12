@@ -1,0 +1,44 @@
+name: iOS preparation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.test.js
+      - run: node scripts/build-standalone.mjs && node scripts/prepare-ios.mjs
+      - run: brew install xcodegen
+      - run: cd ios && xcodegen generate
+      - name: Build iPhone simulator candidate
+        run: |
+          xcodebuild -version
+          xcodebuild build -project ios/VoleySimple.xcodeproj -scheme VoleySimple -configuration Release -sdk iphonesimulator -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO
+      - name: Launch candidate and capture actual iPhone simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for k,v in d["devices"].items() if "iOS" in k for x in v if "iPhone" in x["name"]))')
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl install "$DEVICE" ios/build/Build/Products/Release-iphonesimulator/VoleySimple.app
+          xcrun simctl launch "$DEVICE" com.krazel.voleysimple
+          sleep 8
+          mkdir -p artifacts
+          xcrun simctl io "$DEVICE" screenshot artifacts/iPhone.png
+          echo "VoleySimple 0.17 (1) simulator; commit $GITHUB_SHA; run $GITHUB_RUN_ID; not a signed TestFlight IPA" > artifacts/manifest.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VoleySimple-0.17-1-simulator-${{ github.sha }}
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/VoleySimple.app
+            artifacts/
+          retention-days: 7

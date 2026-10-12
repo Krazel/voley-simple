@@ -1,0 +1,38 @@
+name: Upload validated IPA to TestFlight
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: voley-testflight-upload
+  cancel-in-progress: false
+jobs:
+  upload:
+    if: github.actor == github.repository_owner && github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    environment: app-store-production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download previously validated signed candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 38298920493 --repo Krazel/voley-simple --name VoleySimple-0.17-1-signed-candidate-5a0fb1a4eb08444aeee117f39b1d8f960295ab9b --dir candidate
+      - name: Verify exact binary and upload to Apple
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY_BASE64: ${{ secrets.ASC_PRIVATE_KEY_BASE64 }}
+        run: node scripts/upload-testflight.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: VoleySimple-0.17-1-upload-receipt
+          path: upload-receipt/
+          retention-days: 7

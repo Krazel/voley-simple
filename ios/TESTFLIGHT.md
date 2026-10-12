@@ -5,3 +5,5 @@ Text policy: enabled at initialization; reconciled after DOM ready and while edi
 Build: node scripts/build-standalone.mjs; node scripts/prepare-ios.mjs; cd ios; xcodegen generate. CI compiles and launches an unsigned simulator app; this is not an installable IPA or TestFlight delivery.
 App Store Connect record must be created before upload. Signing requires a distribution certificate/private key and an App Store provisioning profile for this exact bundle. Signing/upload are separate from untrusted PR builds. Do not commit credentials. TestFlight upload requires the owner's explicit authorization; external testers require separate configuration/review.
 Provisional icon: code-drawn volleyball; pending visual review. Privacy: settings/mute remain on device; no data collected. Store support/privacy URLs and beta contact need the existing public Krazel support channel before external testing/App Review.
+
+App Store Connect record verified: 6822062720; Spanish (Spain); SKU KRAZEL-VOLEY-SIMPLE-IOS. Version 0.17 is in PREPARE_FOR_SUBMISSION; no build uploaded. Bundle resource 7QC46XVHP8.

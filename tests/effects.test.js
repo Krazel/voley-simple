@@ -29,3 +29,10 @@ test('audio never starts before unlock; mute and pause stop existing voices',()=
  for(let i=0;i<20;i++)audio.play('attack');assert.equal(starts,12);assert.equal(audio.voices.length,12);
  audio.toggle();assert.equal(audio.enabled,false);assert.equal(audio.voices.length,0);const before=starts;audio.play('point');assert.equal(starts,before);assert.equal(stops,24);
 });
+
+
+test('native audio uses only the AVAudioPlayer bridge and internal mute stops voices',()=>{
+ const prior=globalThis.window;const messages=[];
+ globalThis.window={webkit:{messageHandlers:{voleyAudio:{postMessage:m=>messages.push(m)}}}};
+ try{const audio=new GameAudio();audio.enabled=true;audio.unlock();assert.equal(audio.context,null);audio.play('point',0);audio.toggle();audio.play('attack');assert.deepEqual(messages.map(m=>m.kind),['point-blue','stop']);audio.toggle();audio.play('jump');assert.equal(messages.at(-1).kind,'jump')}finally{if(prior===undefined)delete globalThis.window;else globalThis.window=prior}
+});

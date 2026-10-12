@@ -6,7 +6,7 @@
   "teamId": "B2X6D3A9J9",
   "marketingVersion": "0.18",
   "buildNumber": 1,
-  "purpose": "Signed candidate export without TestFlight upload",
+  "purpose": "Owner-authorized TestFlight delivery with floating controls",
   "locale": "es-ES",
   "sku": "KRAZEL-VOLEY-SIMPLE-IOS"
 }

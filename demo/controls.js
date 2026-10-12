@@ -1,4 +1,9 @@
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
+export function touchRole(type,x,width,handedness,move){
+ if(type==='mouse'||move)return 'action';
+ const movementSide=handedness==='left'?x>=width/2:x<width/2;
+ return movementSide?'move':'action';
+}
 export function dragPower(direction,span=130){
  if(!direction)return .55;
  return Math.max(.02,Math.min(1,Math.hypot(direction.x,direction.y)/Math.max(40,span)));

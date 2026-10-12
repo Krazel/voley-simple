@@ -26,17 +26,17 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
 .game-shell{-webkit-touch-callout:none}input,textarea,[contenteditable=true]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 
 #jump-button{pointer-events:auto}
-</style>
+#move-pad{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:#f6f7ef55;border:2px solid #ffffffa8;display:flex;align-items:center;justify-content:center}#move-pad[hidden]{display:none}#move-pad>span{font-size:36px;color:#eaf5ff;text-shadow:0 2px 8px #16314855}.bottom-controls{justify-content:flex-end}.control-tip{margin-right:auto}.game-shell[data-handedness="left"] .bottom-controls{flex-direction:row-reverse}.overlay{z-index:5}</style>
 </head>
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.17</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.18</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
-  <div class="instructions"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span> o flechas para moverte</span></p><p><kbd>Clic / toque</kbd><span> Breve: dash en tu movimiento</span></p><p><kbd>Arrastrar</kbd><span> Cerca del balón: traza y suelta en el destino</span></p><p><kbd>SALTO</kbd><span> Botón abajo a la derecha</span></p><p><kbd>Espacio</kbd><span> Dash al moverte</span><kbd>Shift</kbd><span>Dash</span></p></div>
-  <p class="note">Un trazo largo y recto pide más rapidez. La línea de color muestra la trayectoria real con gravedad; naranja avisa de red, fuera o alcance. Empezar detrás de ti no suma fuerza.<br>Móvil: un dedo en MOVER y otro para el gesto. Quieto, el toque no hace dash. En 2v2 puedes pasar suave a tu compañera.</p>
+  <div class="instructions"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span> o flechas para moverte</span></p><p><kbd>Clic / toque</kbd><span> Breve: dash en tu movimiento</span></p><p><kbd>Arrastrar</kbd><span> Cerca del balón: traza y suelta en el destino</span></p><p><kbd>SALTO</kbd><span> Botón en el lado de acción</span></p><p><kbd>Espacio</kbd><span> Dash al moverte</span><kbd>Shift</kbd><span>Dash</span></p></div>
+  <p class="note">Un trazo largo y recto pide más rapidez. La línea de color muestra la trayectoria real con gravedad; naranja avisa de red, fuera o alcance. Empezar detrás de ti no suma fuerza.<br>Móvil: toca en cualquier punto del lado de movimiento; el segundo dedo hace la acción en cualquier lado. Quieto, el toque no hace dash. En 2v2 puedes pasar suave a tu compañera.</p>
   <footer>Primero a 7 · <a href="./animaciones.html">Animaciones</a> · <a href="./voley-0.12.html">Versión anterior</a></footer>
 </aside>
 <section class="game-shell" aria-label="Juego de vóley 1v1 o 2v2">
@@ -44,8 +44,8 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
   <div class="hud"><button id="sound" class="icon-button sound-button" aria-label="Silenciar efectos" aria-pressed="true">♪</button><div class="score" aria-label="Marcador"><span class="team-score"><small>TÚ + BOT</small><b id="score-blue">0</b></span><span class="separator">:</span><span class="team-score orange"><small>RIVALES</small><b id="score-orange">0</b></span></div><button id="pause" class="icon-button" aria-label="Pausar partido" disabled>Ⅱ</button></div>
   <div id="callout" class="callout" aria-live="polite">1 CONTRA 1 · UN BOT</div>
   <div id="rally" class="rally-line">PRIMERO A 7</div>
-  <div class="bottom-controls"><div id="move-pad" class="drag-hint" aria-label="Zona táctil de movimiento"><span>✥</span><strong>MOVER</strong><small>un dedo · WASD</small></div><div class="control-tip">Toque: dash<br>Botón: salto<br>Trazo cerca: golpe</div><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
-  <div id="overlay" class="overlay">
+  <div class="bottom-controls"><div class="control-tip">Toque: dash<br>Botón: salto<br>Trazo cerca: golpe</div><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
+  <div id="move-pad" class="drag-hint" hidden aria-label="Control flotante de movimiento"><span>●</span></div><div id="overlay" class="overlay">
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
@@ -53,7 +53,7 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
-      <label class="mode-choice">Formato <select id="mode" aria-label="Formato de partido"><option value="1v1" selected>1 contra 1 · un bot</option><option value="2v2">2 contra 2 · tres bots</option></select></label>
+      <label class="mode-choice">Controles <select id="handedness" aria-label="Diestro o zurdo"><option value="right">Diestro · mover a la izquierda</option><option value="left">Zurdo · mover a la derecha</option></select></label><label class="mode-choice">Formato <select id="mode" aria-label="Formato de partido"><option value="1v1" selected>1 contra 1 · un bot</option><option value="2v2">2 contra 2 · tres bots</option></select></label>
       <small class="map-note">Cambiar mapa o formato inicia otro partido.</small>
       <button id="play" class="primary" disabled>Cargando cancha…</button>
       <button id="watch" class="secondary" disabled>Ver partido de bots</button>
@@ -661,6 +661,11 @@ class Match {
 }
 
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
+function touchRole(type,x,width,handedness,move){
+ if(type==='mouse'||move)return 'action';
+ const movementSide=handedness==='left'?x>=width/2:x<width/2;
+ return movementSide?'move':'action';
+}
 function dragPower(direction,span=130){
  if(!direction)return .55;
  return Math.max(.02,Math.min(1,Math.hypot(direction.x,direction.y)/Math.max(40,span)));
@@ -841,6 +846,7 @@ const preferenceKey='voley-preferences-v1';
 function readPreferences(storage){
  let value;try{value=JSON.parse(storage?.getItem(preferenceKey)||'null')}catch{}
  return {
+  handedness:value?.handedness==='left'?'left':'right',
   map:['rooftop','mobile'].includes(value?.map)?value.map:'pavilion',
   mode:value?.mode==='2v2'?'2v2':'1v1',
   zoom:Object.fromEntries(['rooftop','pavilion','mobile'].map(id=>{
@@ -904,6 +910,20 @@ const controls=new StrokeControls({
  stopMove:()=>match.moveTo(match.players[0].x,match.players[0].y)
 });
 const surface=document.querySelector('.game-shell');
+const handChoice=document.getElementById('handedness'),movePad=document.getElementById('move-pad');
+handChoice.value=preferences.handedness;
+surface.dataset.handedness=handChoice.value;
+handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();savePreferences()});
+function syncMovePad(){
+ const move=controls.move;
+ movePad.hidden=!move;
+ if(!move)return;
+ const rect=surface.getBoundingClientRect();
+ movePad.style.left=(move.start.x+canvasRect.left-rect.left)+'px';
+ movePad.style.top=(move.start.y+canvasRect.top-rect.top)+'px';
+ const dx=move.last.x-move.start.x,dy=move.last.y-move.start.y,n=Math.hypot(dx,dy),scale=n?Math.min(34,n)/n:0;
+ movePad.querySelector('span').style.transform=`translate(${dx*scale}px,${dy*scale}px)`;
+}
 function movementInput(){return {
  x:clamp((keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+controls.vector.x,-1,1),
  y:clamp((keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)+controls.vector.y,-1,1)
@@ -990,16 +1010,17 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
- const role=e.target.closest('#move-pad')?'move':'action';
+ const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
  e.preventDefault();canvas.focus({preventScroll:true});
- if(controls.down(e.pointerId,e.pointerType,point,role))surface.setPointerCapture(e.pointerId);
+ if(controls.down(e.pointerId,e.pointerType,point,role)){surface.setPointerCapture(e.pointerId);syncMovePad()}
 });
 surface.addEventListener('pointermove',e=>{
  if(controls.move?.id!==e.pointerId&&controls.aim?.id!==e.pointerId)return;
- e.preventDefault();controls.motion(e.pointerId,eventPoint(e));
+ e.preventDefault();controls.motion(e.pointerId,eventPoint(e));syncMovePad();
 });
 for(const type of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(type,e=>{
  controls.up(e.pointerId,eventPoint(e),type!=='pointerup');
+ syncMovePad();
 });
 surface.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
@@ -1040,7 +1061,7 @@ function changeArena(){
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
- writePreferences(preferenceStorage,{map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
+ writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
 }
 function syncCameraLabel(){
  const zoom=match.map.zoom??1,relative=zoom/cameraBases[match.map.id];ui['zoom-label'].textContent=Math.round(relative*100)+'%';
@@ -1323,6 +1344,7 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
+ syncMovePad();
  const renderStart=performance.now();render();
  if(!document.hidden&&match.phase==='rally'){frameSamples.push(frameMs);renderSamples.push(performance.now()-renderStart)}
  if(now-lastMetrics>2000&&frameSamples.length){

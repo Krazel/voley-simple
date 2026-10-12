@@ -21,3 +21,4 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
 .game-shell{-webkit-touch-callout:none}input,textarea,[contenteditable=true]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 
 #jump-button{pointer-events:auto}
+#move-pad{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:#f6f7ef55;border:2px solid #ffffffa8;display:flex;align-items:center;justify-content:center}#move-pad[hidden]{display:none}#move-pad>span{font-size:36px;color:#eaf5ff;text-shadow:0 2px 8px #16314855}.bottom-controls{justify-content:flex-end}.control-tip{margin-right:auto}.game-shell[data-handedness="left"] .bottom-controls{flex-direction:row-reverse}.overlay{z-index:5}

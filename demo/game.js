@@ -1,7 +1,7 @@
 import {drawPavilion,drawMobileCourt} from './pavilion.js';
 import {courtConfig} from './maps.js';
 import {Match,clamp} from './engine.js';
-import {StrokeControls} from './controls.js';
+import {StrokeControls,touchRole} from './controls.js';
 import {trajectoryPlan,flightPreview} from './trajectory.js';
 import {projectCourt,unprojectCourt} from './projection.js';
 import {animationFrame,captureMotion,interpolateMotion,animatePose} from './animation.js';
@@ -60,6 +60,20 @@ const controls=new StrokeControls({
  stopMove:()=>match.moveTo(match.players[0].x,match.players[0].y)
 });
 const surface=document.querySelector('.game-shell');
+const handChoice=document.getElementById('handedness'),movePad=document.getElementById('move-pad');
+handChoice.value=preferences.handedness;
+surface.dataset.handedness=handChoice.value;
+handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();savePreferences()});
+function syncMovePad(){
+ const move=controls.move;
+ movePad.hidden=!move;
+ if(!move)return;
+ const rect=surface.getBoundingClientRect();
+ movePad.style.left=(move.start.x+canvasRect.left-rect.left)+'px';
+ movePad.style.top=(move.start.y+canvasRect.top-rect.top)+'px';
+ const dx=move.last.x-move.start.x,dy=move.last.y-move.start.y,n=Math.hypot(dx,dy),scale=n?Math.min(34,n)/n:0;
+ movePad.querySelector('span').style.transform=`translate(${dx*scale}px,${dy*scale}px)`;
+}
 function movementInput(){return {
  x:clamp((keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+controls.vector.x,-1,1),
  y:clamp((keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)+controls.vector.y,-1,1)
@@ -146,16 +160,17 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
- const role=e.target.closest('#move-pad')?'move':'action';
+ const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
  e.preventDefault();canvas.focus({preventScroll:true});
- if(controls.down(e.pointerId,e.pointerType,point,role))surface.setPointerCapture(e.pointerId);
+ if(controls.down(e.pointerId,e.pointerType,point,role)){surface.setPointerCapture(e.pointerId);syncMovePad()}
 });
 surface.addEventListener('pointermove',e=>{
  if(controls.move?.id!==e.pointerId&&controls.aim?.id!==e.pointerId)return;
- e.preventDefault();controls.motion(e.pointerId,eventPoint(e));
+ e.preventDefault();controls.motion(e.pointerId,eventPoint(e));syncMovePad();
 });
 for(const type of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(type,e=>{
  controls.up(e.pointerId,eventPoint(e),type!=='pointerup');
+ syncMovePad();
 });
 surface.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
@@ -196,7 +211,7 @@ function changeArena(){
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
- writePreferences(preferenceStorage,{map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
+ writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
 }
 function syncCameraLabel(){
  const zoom=match.map.zoom??1,relative=zoom/cameraBases[match.map.id];ui['zoom-label'].textContent=Math.round(relative*100)+'%';
@@ -479,6 +494,7 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
+ syncMovePad();
  const renderStart=performance.now();render();
  if(!document.hidden&&match.phase==='rally'){frameSamples.push(frameMs);renderSamples.push(performance.now()-renderStart)}
  if(now-lastMetrics>2000&&frameSamples.length){

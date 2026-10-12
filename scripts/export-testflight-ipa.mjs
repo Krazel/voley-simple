@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { asc } from './asc-client.mjs';
 const cfg = JSON.parse(fs.readFileSync('store/testflight.json', 'utf8'));
-const upload = false; // This preparation workflow never uploads.
+const upload = process.env.VOLEY_TESTFLIGHT_UPLOAD === 'true'; // Only the owner-dispatched upload workflow opts in.
 const exportOnly = process.env.VOLEY_NATIVE_EXPORT === 'true';
 if (process.platform !== 'darwin' || (!upload && !exportOnly) || !cfg.appId) throw Error('An explicit macOS export/upload run and App Store record are required');
 const temp = process.env.RUNNER_TEMP;
@@ -71,6 +71,10 @@ try {
   fs.writeFileSync('artifacts/testflight/manifest.json',JSON.stringify(manifest,null,2));
   run('xcrun',['altool','--validate-app','-f',final,'-t','ios','--apiKey',process.env.ASC_KEY_ID,'--apiIssuer',process.env.ASC_ISSUER_ID]);
   fs.writeFileSync('artifacts/testflight/export-only.json',JSON.stringify({...manifest,validated:true,uploadAccepted:false},null,2));
+  if(upload){
+    run('xcrun',['altool','--upload-app','-f',final,'-t','ios','--apiKey',process.env.ASC_KEY_ID,'--apiIssuer',process.env.ASC_ISSUER_ID]);
+    fs.writeFileSync('artifacts/testflight/upload-accepted.json',JSON.stringify({...manifest,validated:true,uploadAccepted:true,processingVerified:false},null,2));
+  }
 } finally {
   spawnSync('security',['delete-keychain',keychain],{stdio:'ignore'});
   for (const file of [key,p12,profile,profilePlist,installedProfile]) if(file && fs.existsSync(file)) fs.unlinkSync(file);

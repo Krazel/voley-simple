@@ -18,7 +18,7 @@ Cancha móvil fits portrait phones at the same sprite scale as Pabellón. Pabell
 
 
 
-iOS 0.18 (1): UIKit WKWebView, native AVAudioPlayer effects. CI validates an unsigned simulator build; TestFlight signing and upload are separate. See ios/TESTFLIGHT.md.
+iOS 0.19 (1): UIKit WKWebView, native AVAudioPlayer effects. CI validates an unsigned simulator build; TestFlight signing and upload are separate. See ios/TESTFLIGHT.md.
 
 
 

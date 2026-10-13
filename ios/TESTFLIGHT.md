@@ -9,3 +9,5 @@ Provisional icon: code-drawn volleyball; pending visual review. Privacy: setting
 App Store Connect record verified: 6822062720; Spanish (Spain); SKU KRAZEL-VOLEY-SIMPLE-IOS. Version 0.17 is in PREPARE_FOR_SUBMISSION; Build 0.17 (1) remains internally available. Build 0.18 (1), floating controls and saved handedness, uploaded on 2026-10-12; processed VALID and owner-only IN_BETA_TESTING verified through Apple API. No external testing or App Store submission. Bundle resource 7QC46XVHP8.
 
 0.19 (1) verified 2026-10-13: tap target, teammate pass, three tap power levels and flatter arc; Apple VALID / owner-only IN_BETA_TESTING. CI 38324645417. Physical QA pending.
+
+0.20 (1) verified 2026-10-13: charged directional TIRO, release PASE, forgiving 900 ms reception; Apple VALID / owner-only IN_BETA_TESTING. CI 38448491881. Explicit owner exception keeps this repository public for CI. Physical QA pending.

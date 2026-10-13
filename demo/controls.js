@@ -1,4 +1,9 @@
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
+export function chargePower(milliseconds){return Math.max(0,Math.min(1,milliseconds/850))}
+export function directedTarget(origin,direction){
+ const n=Math.hypot(direction.x,direction.y),d=n>.1?{x:direction.x/n,y:direction.y/n}:{x:0,y:-1};
+ return {x:Math.max(.4,Math.min(7.6,origin.x+d.x*10)),y:Math.max(.6,Math.min(15.4,origin.y+d.y*10))};
+}
 export function touchRole(type,x,width,handedness,move){
  if(type==='mouse'||move)return 'action';
  const movementSide=handedness==='left'?x>=width/2:x<width/2;

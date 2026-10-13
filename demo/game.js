@@ -1,7 +1,7 @@
 import {drawPavilion,drawMobileCourt} from './pavilion.js';
 import {courtConfig} from './maps.js';
 import {Match,clamp} from './engine.js';
-import {StrokeControls,touchRole,tapTarget,groupTap} from './controls.js';
+import {StrokeControls,touchRole,chargePower,directedTarget} from './controls.js';
 import {trajectoryPlan,flightPreview} from './trajectory.js';
 import {projectCourt,unprojectCourt} from './projection.js';
 import {animationFrame,captureMotion,interpolateMotion,animatePose} from './animation.js';
@@ -12,20 +12,22 @@ const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
-let simpleRequest=null,tapFeedback=null;
-function simpleHit(request,point){
+let simpleRequest=null,tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1};
+function simpleHit(request){
  if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
- simpleRequest=groupTap(simpleRequest,request,point,performance.now());
- tapFeedback={target:simpleRequest.target,level:simpleRequest.level,until:performance.now()+900};
- message((request.kind==='pass'?'PASE':'GOLPE')+' · '+['','1 · FLOJO','2 · FUERTE','3 · MUY FUERTE'][simpleRequest.level],.6);
+ simpleRequest={...request,until:performance.now()+900};
+ tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+900};
+ message(request.kind==='pass'?'PASE PREPARADO':'TIRO · '+Math.round(request.strength*100)+'%',.6);
 }
 function updateSimpleHit(){
  if(!simpleRequest)return;
  if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
- if((simpleRequest.level===3||performance.now()>=simpleRequest.commitAt)&&match.canHumanHit()){
+ if(match.canHumanHit(.3)){
   const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
   const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
-  const tapLevel=simpleRequest.level;simpleRequest=null;match.humanTargetHit({target,points:[],tapLevel});
+  const strength=simpleRequest.strength;
+  const result=match.humanTargetHit({target,points:[],strength,assisted:true});
+  if(result)simpleRequest=null;
  }
 }
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
@@ -176,15 +178,6 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
- const world=unproject(point.x/canvasRect.width*viewWidth,point.y/canvasRect.height*viewHeight);
- const partner=match.activePlayers.find(p=>{
-  if(p.team!==0||p.id===0)return false;
-  const shown=renderPlayers[p.id]||p,foot=project(shown.x,shown.y,shown.z);
-  const sx=foot.x/viewWidth*canvasRect.width,sy=foot.y/viewHeight*canvasRect.height;
-  return Math.abs(point.x-sx)<32&&point.y>=sy-90&&point.y<=sy+20;
- });
- const request=tapTarget(world,partner);
- if(request){e.preventDefault();simpleHit(request,point);return}
  const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
  if(e.pointerType!=='mouse'&&role==='action')return;
  e.preventDefault();canvas.focus({preventScroll:true});
@@ -233,7 +226,7 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Toca la cancha rival para apuntar o tu compañera para pasar. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta hacia tu movimiento. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
@@ -487,7 +480,7 @@ function render(){
  canvas.dataset.practice=String(match.practice);
  canvas.dataset.lastTarget=match.lastTargetPlan?JSON.stringify(match.lastTargetPlan.requestedTarget):'';
  setText(ui.rally,match.phase==='rally'?(match.rally===0?'SAQUE':(match.autoplay?(match.lastTeam===0?'AZUL':'NARANJA'):match.lastTeam===0?'VUESTRO EQUIPO':'RIVALES')+' · TOQUE '+match.touches+'/3'):match.phase==='point'?'SIGUIENTE SAQUE EN '+Math.ceil(match.timer):match.phase==='countdown'?'SAQUE EN '+Math.ceil(match.timer):match.phase==='finished'?'PARTIDO TERMINADO':'PRIMERO A 7');
- if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · TOCA TU DESTINO');
+ if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · MANTÉN TIRO Y SUELTA');
  ui.callout.style.opacity=performance.now()<calloutUntil||match.phase==='ready'?'1':'.3';
 }
 function loop(now){
@@ -520,6 +513,12 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
+ const shotDirection=movementInput();if(Math.hypot(shotDirection.x,shotDirection.y)>.1)lastShotDirection=shotDirection;
+ if(charge&&(!ui.overlay.hidden||match.phase!=='rally'))charge=null;
+ const shotButton=document.getElementById('hit-button');
+ const charged=charge?chargePower(performance.now()-charge.started):0;
+ shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':'TIRO';
+ shotButton.style.setProperty('--charge',charged*100+'%');
  updateSimpleHit();syncMovePad();
  const marker=document.getElementById('tap-marker');
  marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
@@ -551,3 +550,24 @@ for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
  button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
  button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
 }
+const shotButton=document.getElementById('hit-button');
+shotButton.addEventListener('pointerdown',e=>{
+ e.preventDefault();e.stopPropagation();
+ if(charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ charge={id:e.pointerId,started:performance.now()};shotButton.setPointerCapture(e.pointerId);
+});
+shotButton.addEventListener('pointerup',e=>{
+ e.preventDefault();e.stopPropagation();if(charge?.id!==e.pointerId)return;
+ const strength=chargePower(performance.now()-charge.started);charge=null;
+ const d=movementInput(),direction=Math.hypot(d.x,d.y)>.1?d:lastShotDirection;
+ simpleHit({kind:'attack',target:directedTarget(match.ball,direction),strength});
+});
+for(const event of ['pointercancel','lostpointercapture'])shotButton.addEventListener(event,()=>charge=null);
+shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',target:directedTarget(match.ball,lastShotDirection),strength:0})});
+const passButton=document.getElementById('pass-button');
+function buttonPass(){const partner=match.activePlayers.find(p=>p.team===0&&p.id!==0);if(partner)simpleHit({kind:'pass',receiver:partner.id,target:{x:partner.x,y:partner.y},strength:0});else message('PASE · NECESITAS COMPAÑERA EN 2v2',1)}
+let passPointer=null;
+passButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(passPointer!==null)return;passPointer=e.pointerId;passButton.setPointerCapture(e.pointerId)});
+passButton.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();if(passPointer===e.pointerId){passPointer=null;buttonPass()}});
+for(const event of ['pointercancel','lostpointercapture'])passButton.addEventListener(event,()=>passPointer=null);
+passButton.addEventListener('click',e=>{if(e.detail===0)buttonPass()});

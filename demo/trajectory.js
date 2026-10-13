@@ -105,6 +105,7 @@ export function trajectoryPlan(player,ball,request,court=courtConfig()){
  if([1,2,3].includes(request.tapLevel)&&reachable){
   time=Math.min(maxTime||Infinity,time*[0,1.15,1.07,1][request.tapLevel]);
  }
+ if(Number.isFinite(request.strength)&&reachable)time=Math.min(maxTime||Infinity,time*(1.15-.15*limit(request.strength,0,1)));
  const vx=(actualTarget.x-origin.x)/time,vy=(actualTarget.y-origin.y)/time,vz=-h/time+.5*g*time;
  const actualSpeed=Math.hypot(vx,vy,vz),pass=target.y>8&&target.y<16&&target.x>0&&target.x<8;
  const out=target.x<0||target.x>8||target.y<0||target.y>16;

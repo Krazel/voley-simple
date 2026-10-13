@@ -35,6 +35,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: VoleySimple-0.19-1-signed-candidate-${{ github.sha }}
+          name: VoleySimple-0.20-1-signed-candidate-${{ github.sha }}
           path: artifacts/testflight/
           retention-days: 3

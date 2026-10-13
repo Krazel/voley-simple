@@ -8,7 +8,7 @@
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.19</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.20</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
@@ -21,12 +21,12 @@
   <div class="hud"><button id="sound" class="icon-button sound-button" aria-label="Silenciar efectos" aria-pressed="true">♪</button><div class="score" aria-label="Marcador"><span class="team-score"><small>TÚ + BOT</small><b id="score-blue">0</b></span><span class="separator">:</span><span class="team-score orange"><small>RIVALES</small><b id="score-orange">0</b></span></div><button id="pause" class="icon-button" aria-label="Pausar partido" disabled>Ⅱ</button></div>
   <div id="callout" class="callout" aria-live="polite">1 CONTRA 1 · UN BOT</div>
   <div id="rally" class="rally-line">PRIMERO A 7</div>
-  <div class="bottom-controls"><div class="control-tip">Arrastra para mover<br>Pulsa para golpear</div><button id="dash-button" class="simple-button">DASH</button><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
+  <div class="bottom-controls"><div class="control-tip">Arrastra para mover<br>Pulsa para golpear</div><button id="pass-button" class="simple-button">PASE</button><button id="hit-button" class="simple-button">TIRO</button><button id="dash-button" class="simple-button">DASH</button><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
   <div id="tap-marker" hidden aria-hidden="true"></div><div id="move-pad" class="drag-hint" hidden aria-label="Control flotante de movimiento"><span>●</span></div><div id="overlay" class="overlay">
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
-      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). Toca la cancha rival: el balón va hacia ese punto. Toca a tu compañera para pasarle en 2v2. SALTO salta y DASH acelera. 1 toque flojo, 2 fuerte, 3 muy fuerte: repite rápido cerca del mismo punto. Puedes prepararlo antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). TIRO apunta hacia tu movimiento: mantén para cargar y suelta para disparar. Quieto conserva tu última dirección; al inicio apunta hacia la red. PASE busca a tu compañera en 2v2. SALTO salta y DASH acelera. La potencia se carga hasta 100%. Puedes soltar un poco antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>

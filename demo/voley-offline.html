@@ -30,12 +30,14 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
 #tap-marker{position:absolute;width:36px;height:36px;border:3px solid #ffe59c;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;background:#ffc65a44;box-shadow:0 0 14px #fff4b7;z-index:3}#tap-marker[hidden]{display:none}
 
 #tap-marker{display:grid;place-items:center;color:#fff;font-size:18px;font-weight:900;text-shadow:0 1px 3px #182b46}#tap-marker[data-level='2']{border-color:#ffb456;background:#e8973055}#tap-marker[data-level='3']{border-color:#ff754a;background:#ee593966}
+
+#hit-button{background:linear-gradient(to top,#ffb239 var(--charge,0%),#2266bc var(--charge,0%));color:white}
 </style>
 </head>
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.19</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.20</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
@@ -48,12 +50,12 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
   <div class="hud"><button id="sound" class="icon-button sound-button" aria-label="Silenciar efectos" aria-pressed="true">♪</button><div class="score" aria-label="Marcador"><span class="team-score"><small>TÚ + BOT</small><b id="score-blue">0</b></span><span class="separator">:</span><span class="team-score orange"><small>RIVALES</small><b id="score-orange">0</b></span></div><button id="pause" class="icon-button" aria-label="Pausar partido" disabled>Ⅱ</button></div>
   <div id="callout" class="callout" aria-live="polite">1 CONTRA 1 · UN BOT</div>
   <div id="rally" class="rally-line">PRIMERO A 7</div>
-  <div class="bottom-controls"><div class="control-tip">Arrastra para mover<br>Pulsa para golpear</div><button id="dash-button" class="simple-button">DASH</button><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
+  <div class="bottom-controls"><div class="control-tip">Arrastra para mover<br>Pulsa para golpear</div><button id="pass-button" class="simple-button">PASE</button><button id="hit-button" class="simple-button">TIRO</button><button id="dash-button" class="simple-button">DASH</button><div id="action" aria-label="Indicador de gesto y velocidad"><span>↗</span><strong>DASH</strong><div class="power-track"><i></i></div><small>suelta en el destino</small></div><button id="jump-button" aria-label="Saltar"><span>↑</span><strong>SALTO</strong></button></div>
   <div id="tap-marker" hidden aria-hidden="true"></div><div id="move-pad" class="drag-hint" hidden aria-label="Control flotante de movimiento"><span>●</span></div><div id="overlay" class="overlay">
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
-      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). Toca la cancha rival: el balón va hacia ese punto. Toca a tu compañera para pasarle en 2v2. SALTO salta y DASH acelera. 1 toque flojo, 2 fuerte, 3 muy fuerte: repite rápido cerca del mismo punto. Puedes prepararlo antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). TIRO apunta hacia tu movimiento: mantén para cargar y suelta para disparar. Quieto conserva tu última dirección; al inicio apunta hacia la red. PASE busca a tu compañera en 2v2. SALTO salta y DASH acelera. La potencia se carga hasta 100%. Puedes soltar un poco antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
@@ -253,6 +255,7 @@ function trajectoryPlan(player,ball,request,court=courtConfig()){
  if([1,2,3].includes(request.tapLevel)&&reachable){
   time=Math.min(maxTime||Infinity,time*[0,1.15,1.07,1][request.tapLevel]);
  }
+ if(Number.isFinite(request.strength)&&reachable)time=Math.min(maxTime||Infinity,time*(1.15-.15*limit(request.strength,0,1)));
  const vx=(actualTarget.x-origin.x)/time,vy=(actualTarget.y-origin.y)/time,vz=-h/time+.5*g*time;
  const actualSpeed=Math.hypot(vx,vy,vz),pass=target.y>8&&target.y<16&&target.x>0&&target.x<8;
  const out=target.x<0||target.x>8||target.y<0||target.y>16;
@@ -363,8 +366,8 @@ class Match {
  }
  humanTargetHit(request){
   if(!request||!Number.isFinite(request.target?.x+request.target?.y))return null;
-  const copy={target:{...request.target},tapLevel:request.tapLevel,points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
-  if(this.canHumanHit()||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
+  const copy={target:{...request.target},strength:request.strength,tapLevel:request.tapLevel,points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
+  if(this.canHumanHit(request.assisted?.3:0)||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
   if(!this.canHumanAim())return null;
   this.pendingHit={request:copy,expires:this.time+.2};return 'buffered';
  }
@@ -670,6 +673,11 @@ class Match {
 }
 
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
+function chargePower(milliseconds){return Math.max(0,Math.min(1,milliseconds/850))}
+function directedTarget(origin,direction){
+ const n=Math.hypot(direction.x,direction.y),d=n>.1?{x:direction.x/n,y:direction.y/n}:{x:0,y:-1};
+ return {x:Math.max(.4,Math.min(7.6,origin.x+d.x*10)),y:Math.max(.6,Math.min(15.4,origin.y+d.y*10))};
+}
 function touchRole(type,x,width,handedness,move){
  if(type==='mouse'||move)return 'action';
  const movementSide=handedness==='left'?x>=width/2:x<width/2;
@@ -890,20 +898,22 @@ const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
-let simpleRequest=null,tapFeedback=null;
-function simpleHit(request,point){
+let simpleRequest=null,tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1};
+function simpleHit(request){
  if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
- simpleRequest=groupTap(simpleRequest,request,point,performance.now());
- tapFeedback={target:simpleRequest.target,level:simpleRequest.level,until:performance.now()+900};
- message((request.kind==='pass'?'PASE':'GOLPE')+' · '+['','1 · FLOJO','2 · FUERTE','3 · MUY FUERTE'][simpleRequest.level],.6);
+ simpleRequest={...request,until:performance.now()+900};
+ tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+900};
+ message(request.kind==='pass'?'PASE PREPARADO':'TIRO · '+Math.round(request.strength*100)+'%',.6);
 }
 function updateSimpleHit(){
  if(!simpleRequest)return;
  if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
- if((simpleRequest.level===3||performance.now()>=simpleRequest.commitAt)&&match.canHumanHit()){
+ if(match.canHumanHit(.3)){
   const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
   const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
-  const tapLevel=simpleRequest.level;simpleRequest=null;match.humanTargetHit({target,points:[],tapLevel});
+  const strength=simpleRequest.strength;
+  const result=match.humanTargetHit({target,points:[],strength,assisted:true});
+  if(result)simpleRequest=null;
  }
 }
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
@@ -1054,15 +1064,6 @@ surface.addEventListener('pointerdown',e=>{
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
- const world=unproject(point.x/canvasRect.width*viewWidth,point.y/canvasRect.height*viewHeight);
- const partner=match.activePlayers.find(p=>{
-  if(p.team!==0||p.id===0)return false;
-  const shown=renderPlayers[p.id]||p,foot=project(shown.x,shown.y,shown.z);
-  const sx=foot.x/viewWidth*canvasRect.width,sy=foot.y/viewHeight*canvasRect.height;
-  return Math.abs(point.x-sx)<32&&point.y>=sy-90&&point.y<=sy+20;
- });
- const request=tapTarget(world,partner);
- if(request){e.preventDefault();simpleHit(request,point);return}
  const role=touchRole(e.pointerType,point.x,canvasRect.width,handChoice.value,controls.move);
  if(e.pointerType!=='mouse'&&role==='action')return;
  e.preventDefault();canvas.focus({preventScroll:true});
@@ -1111,7 +1112,7 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Toca la cancha rival para apuntar o tu compañera para pasar. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta hacia tu movimiento. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
@@ -1365,7 +1366,7 @@ function render(){
  canvas.dataset.practice=String(match.practice);
  canvas.dataset.lastTarget=match.lastTargetPlan?JSON.stringify(match.lastTargetPlan.requestedTarget):'';
  setText(ui.rally,match.phase==='rally'?(match.rally===0?'SAQUE':(match.autoplay?(match.lastTeam===0?'AZUL':'NARANJA'):match.lastTeam===0?'VUESTRO EQUIPO':'RIVALES')+' · TOQUE '+match.touches+'/3'):match.phase==='point'?'SIGUIENTE SAQUE EN '+Math.ceil(match.timer):match.phase==='countdown'?'SAQUE EN '+Math.ceil(match.timer):match.phase==='finished'?'PARTIDO TERMINADO':'PRIMERO A 7');
- if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · TOCA TU DESTINO');
+ if(match.practice)setText(ui.rally,match.phase==='point'?'OTRO BALÓN EN '+Math.ceil(match.timer):match.practiceFlying?'PRÁCTICA · VUELO REAL':'PRÁCTICA · MANTÉN TIRO Y SUELTA');
  ui.callout.style.opacity=performance.now()<calloutUntil||match.phase==='ready'?'1':'.3';
 }
 function loop(now){
@@ -1398,6 +1399,12 @@ function loop(now){
   if(reducedMotion){animations[p.id].fade=1;animations[p.id].pose={lean:0,bounce:0,scaleX:1,scaleY:1}}
  });
  if(match.phase!=='rally'&&match.phase!=='paused')trail=[];
+ const shotDirection=movementInput();if(Math.hypot(shotDirection.x,shotDirection.y)>.1)lastShotDirection=shotDirection;
+ if(charge&&(!ui.overlay.hidden||match.phase!=='rally'))charge=null;
+ const shotButton=document.getElementById('hit-button');
+ const charged=charge?chargePower(performance.now()-charge.started):0;
+ shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':'TIRO';
+ shotButton.style.setProperty('--charge',charged*100+'%');
  updateSimpleHit();syncMovePad();
  const marker=document.getElementById('tap-marker');
  marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
@@ -1429,6 +1436,27 @@ for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
  button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
  button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
 }
+const shotButton=document.getElementById('hit-button');
+shotButton.addEventListener('pointerdown',e=>{
+ e.preventDefault();e.stopPropagation();
+ if(charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ charge={id:e.pointerId,started:performance.now()};shotButton.setPointerCapture(e.pointerId);
+});
+shotButton.addEventListener('pointerup',e=>{
+ e.preventDefault();e.stopPropagation();if(charge?.id!==e.pointerId)return;
+ const strength=chargePower(performance.now()-charge.started);charge=null;
+ const d=movementInput(),direction=Math.hypot(d.x,d.y)>.1?d:lastShotDirection;
+ simpleHit({kind:'attack',target:directedTarget(match.ball,direction),strength});
+});
+for(const event of ['pointercancel','lostpointercapture'])shotButton.addEventListener(event,()=>charge=null);
+shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',target:directedTarget(match.ball,lastShotDirection),strength:0})});
+const passButton=document.getElementById('pass-button');
+function buttonPass(){const partner=match.activePlayers.find(p=>p.team===0&&p.id!==0);if(partner)simpleHit({kind:'pass',receiver:partner.id,target:{x:partner.x,y:partner.y},strength:0});else message('PASE · NECESITAS COMPAÑERA EN 2v2',1)}
+let passPointer=null;
+passButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(passPointer!==null)return;passPointer=e.pointerId;passButton.setPointerCapture(e.pointerId)});
+passButton.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();if(passPointer===e.pointerId){passPointer=null;buttonPass()}});
+for(const event of ['pointercancel','lostpointercapture'])passButton.addEventListener(event,()=>passPointer=null);
+passButton.addEventListener('click',e=>{if(e.detail===0)buttonPass()});
 
 })();</script>
 </body></html>

@@ -12,4 +12,4 @@ App Store Connect record verified: 6822062720; Spanish (Spain); SKU KRAZEL-VOLEY
 
 0.20 (1) verified 2026-10-13: charged directional TIRO, release PASE, forgiving 900 ms reception; Apple VALID / owner-only IN_BETA_TESTING. CI 38448491881. Explicit owner exception keeps this repository public for CI. Physical QA pending.
 
-0.21 (1) candidate prepared 2026-10-16: editable action button positions, PASE only in 2v2, assisted opponent-court shots and 1.25-second contact window. Upload authorized; processing not yet verified.
+0.21 (1) verified 2026-10-16: editable action button positions, PASE only in 2v2, assisted opponent-court shots and 1.25-second contact window. Apple VALID / owner-only IN_BETA_TESTING; signing/upload CI 38896509256. Physical QA pending.

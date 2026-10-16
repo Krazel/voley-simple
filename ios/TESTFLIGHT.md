@@ -1,4 +1,4 @@
-# iOS 0.18 (1)
+# iOS 0.21 (1)
 Bundle identifier: com.krazel.voleysimple. UIKit / WKWebView, iOS 16+, iPhone portrait and iPad. The complete offline game is bundled locally; no server, account, analytics, advertising, purchases or network requests.
 Native audio: eight recorded WAV effects played through AVAudioPlayer under AVAudioSession playback. Internal mute stops active voices and blocks new effects; browser keeps Web Audio. No music currently exists. Device listening with silent mode, interruption/background, Continue and mute remains required.
 Text policy: enabled at initialization; reconciled after DOM ready and while editable fields are visible. Game surface disables selection and callout. Real-device gesture QA remains required.
@@ -11,3 +11,5 @@ App Store Connect record verified: 6822062720; Spanish (Spain); SKU KRAZEL-VOLEY
 0.19 (1) verified 2026-10-13: tap target, teammate pass, three tap power levels and flatter arc; Apple VALID / owner-only IN_BETA_TESTING. CI 38324645417. Physical QA pending.
 
 0.20 (1) verified 2026-10-13: charged directional TIRO, release PASE, forgiving 900 ms reception; Apple VALID / owner-only IN_BETA_TESTING. CI 38448491881. Explicit owner exception keeps this repository public for CI. Physical QA pending.
+
+0.21 (1) candidate prepared 2026-10-16: editable action button positions, PASE only in 2v2, assisted opponent-court shots and 1.25-second contact window. Upload authorized; processing not yet verified.

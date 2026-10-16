@@ -11,14 +11,15 @@ const controls=(await readFile(new URL('demo/controls.js',root),'utf8')).replace
 const animation=(await readFile(new URL('demo/animation.js',root),'utf8')).replace(/^export /gm,'');
 const effects=(await readFile(new URL('demo/effects.js',root),'utf8')).replace(/^export /gm,'');
 const audio=(await readFile(new URL('demo/audio.js',root),'utf8')).replace(/^export /gm,'');
-const preferences=(await readFile(new URL('demo/preferences.js',root),'utf8')).replace(/^export /gm,'');
+const buttonLayout=(await readFile(new URL('demo/button-layout.js',root),'utf8')).replace(/^export /gm,'');
+const preferences=(await readFile(new URL('demo/preferences.js',root),'utf8')).replace(/^import .*?;\r?\n/gm,'').replace(/^export /gm,'');
 let game=(await readFile(new URL('demo/game.js',root),'utf8')).replace(/^import .*?;\r?\n/gm,'');
 for(const name of ['court','players','players-motion','players-action']){
  const data=await readFile(new URL('demo/assets/'+name+'.png',root));
  game=game.replace("'./assets/"+name+".png'","'data:image/png;base64,"+data.toString('base64')+"'");
 }
 html=html.replace('<link rel="stylesheet" href="./style.css">','<style>'+css+'</style>');
-const script='(()=>{\n'+maps+'\n'+projection+'\n'+pavilion+'\n'+trajectory+'\n'+engine+'\n'+controls+'\n'+animation+'\n'+effects+'\n'+audio+'\n'+preferences+'\n'+game+'\n})();';
+const script='(()=>{\n'+maps+'\n'+projection+'\n'+pavilion+'\n'+trajectory+'\n'+engine+'\n'+controls+'\n'+animation+'\n'+effects+'\n'+audio+'\n'+buttonLayout+'\n'+preferences+'\n'+game+'\n})();';
 new Function(script); // Validate the complete embedded bundle before replacing the demo.
 html=html.replace('<script type="module" src="./game.js"></script>','<script>'+script+'</script>');
 await writeFile(new URL('demo/voley-offline.html',root),html);

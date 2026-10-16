@@ -32,12 +32,34 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
 #tap-marker{display:grid;place-items:center;color:#fff;font-size:18px;font-weight:900;text-shadow:0 1px 3px #182b46}#tap-marker[data-level='2']{border-color:#ffb456;background:#e8973055}#tap-marker[data-level='3']{border-color:#ff754a;background:#ee593966}
 
 #hit-button{background:linear-gradient(to top,#ffb239 var(--charge,0%),#2266bc var(--charge,0%));color:white}
+
+/* Movable controls use surface coordinates, with independent touch ownership. */
+.game-shell[data-handedness] .bottom-controls{inset:0;display:block;direction:ltr;pointer-events:none;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.game-shell.watching:not(.editing-controls) .bottom-controls{display:none}
+.bottom-controls button{position:absolute;width:76px!important;height:76px!important;min-height:0!important;margin:0;transform:translate(-50%,-50%);touch-action:none}
+.bottom-controls button:active{transform:translate(-50%,calc(-50% + 3px))}
+.bottom-controls button[hidden]{display:none!important}
+.bottom-controls #jump-button span{font-size:23px}
+.bottom-controls .contact-ready{border-color:#c5ffe5;box-shadow:0 0 0 4px #64f3b344,0 4px 0 #103469}
+.edit-controls{display:block;width:100%;padding:12px;margin:8px 0 12px;border:1px solid #b9cddd;border-radius:10px;background:#e8f2fa;font-size:12px}
+#control-editor{position:absolute;z-index:7;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));max-width:520px;margin:auto;padding:15px 18px;border:1px solid #d4e7ff;border-radius:18px;background:#f4fafff5;box-shadow:0 8px 28px #10243e33;text-align:center}
+#control-editor[hidden]{display:none}
+#control-editor h2{font-size:21px;letter-spacing:-.5px;margin:3px 0 6px}
+#control-editor p{font-size:12px;color:#52697e;min-height:30px;margin:8px 0}
+.editor-actions{display:flex;gap:8px;justify-content:center}
+.editor-actions button{min-height:42px;padding:8px 13px;border:1px solid #b9cddd;border-radius:10px;background:#e8f2fa;color:#173b60;font-weight:700;cursor:pointer}
+.editor-actions #editor-save{background:#2068d8;border-color:#2068d8;color:white}
+.editing-controls .hud,.editing-controls .rally-line,.editing-controls .callout{visibility:hidden}
+.editing-controls .bottom-controls{display:block;z-index:6;background:#10243e33}
+.editing-controls .bottom-controls button{outline:2px dashed #fff;outline-offset:5px;cursor:grab;box-shadow:0 6px 20px #10243e44}
+.editing-controls .bottom-controls button:focus-visible{outline:3px solid #f4bb47}
+@media(max-height:480px){#control-editor{padding:8px 12px}#control-editor h2{font-size:16px}#control-editor p{min-height:0;margin:4px 0;font-size:10px}.editor-actions button{min-height:36px}.editing-controls .modal-tag{display:none}}
 </style>
 </head>
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.20</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.21</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
@@ -55,12 +77,13 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
-      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). TIRO apunta hacia tu movimiento: mantén para cargar y suelta para disparar. Quieto conserva tu última dirección; al inicio apunta hacia la red. PASE busca a tu compañera en 2v2. SALTO salta y DASH acelera. La potencia se carga hasta 100%. Puedes soltar un poco antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). Mantén TIRO y suelta: más tiempo, más potencia. Tu movimiento elige el lado del campo rival; el tiro ayuda a buscar un hueco y superar la red. Puedes soltar hasta 1,25 s antes de recibir. PASE busca a tu compañera en 2v2. SALTO y DASH tienen su botón.<br>PC: WASD mueve; Espacio o Shift hace dash.</p>
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
       <label class="mode-choice">Controles <select id="handedness" aria-label="Diestro o zurdo"><option value="right">Diestro · mover a la izquierda</option><option value="left">Zurdo · mover a la derecha</option></select></label><label class="mode-choice">Formato <select id="mode" aria-label="Formato de partido"><option value="1v1" selected>1 contra 1 · un bot</option><option value="2v2">2 contra 2 · tres bots</option></select></label>
       <small class="map-note">Cambiar mapa o formato inicia otro partido.</small>
+      <button id="edit-controls" class="secondary edit-controls">↔ Colocar botones</button>
       <button id="play" class="primary" disabled>Cargando cancha…</button>
       <button id="watch" class="secondary" disabled>Ver partido de bots</button>
       <button id="practice" class="secondary" disabled>Practicar golpes · balón preparado</button>
@@ -68,6 +91,11 @@ html,body{width:100%;height:100%;overflow:hidden}.layout{width:100%;height:100dv
       <div id="modal-foot">Primero a 7 · Movimiento + acción manual</div>
     </div>
   </div>
+  <section id="control-editor" aria-label="Colocar botones" hidden>
+    <div><span class="modal-tag">TUS CONTROLES</span><h2>Colócalos a tu gusto</h2></div>
+    <p id="editor-note" role="status">Arrastra los botones. También puedes usar Tab y las flechas.</p>
+    <div class="editor-actions"><button id="editor-reset">Restablecer</button><button id="editor-cancel">Cancelar</button><button id="editor-save">Guardar</button></div>
+  </section>
   <span id="match-status" class="sr-only" role="status"></span>
 </section>
 </main>
@@ -367,7 +395,7 @@ class Match {
  humanTargetHit(request){
   if(!request||!Number.isFinite(request.target?.x+request.target?.y))return null;
   const copy={target:{...request.target},strength:request.strength,tapLevel:request.tapLevel,points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
-  if(this.canHumanHit(request.assisted?.3:0)||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
+  if(this.canHumanHit(request.assisted?.55:0)||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
   if(!this.canHumanAim())return null;
   this.pendingHit={request:copy,expires:this.time+.2};return 'buffered';
  }
@@ -674,9 +702,36 @@ class Match {
 
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
 function chargePower(milliseconds){return Math.max(0,Math.min(1,milliseconds/850))}
-function directedTarget(origin,direction){
+function directedTarget(origin,direction,players=[]){
  const n=Math.hypot(direction.x,direction.y),d=n>.1?{x:direction.x/n,y:direction.y/n}:{x:0,y:-1};
- return {x:Math.max(.4,Math.min(7.6,origin.x+d.x*10)),y:Math.max(.6,Math.min(15.4,origin.y+d.y*10))};
+ // Movement steers a safe attacking lane, never a shot back into our own half.
+ // Small adjustments seek space without overriding the player's chosen side.
+ const desired={x:Math.max(1.1,Math.min(6.9,origin.x+d.x*4.5)),y:d.y>.25?5.4:d.y<-.25?2.6:4};
+ const rivals=players.filter(p=>p.team===1),candidates=[];
+ for(const dx of [-.65,0,.65])for(const dy of [-.5,0,.5]){
+  const p={x:Math.max(1.1,Math.min(6.9,desired.x+dx)),y:Math.max(1.5,Math.min(6.2,desired.y+dy))};
+  const space=Math.min(8,...rivals.map(r=>Math.hypot(r.x-p.x,r.y-p.y)));
+  candidates.push({...p,score:space-Math.hypot(p.x-desired.x,p.y-desired.y)*(rivals.length?.45:1.1)});
+ }
+ const best=candidates.sort((a,b)=>b.score-a.score)[0];return {x:best.x,y:best.y};
+}
+// One deliberate release waits for the next legal contact. Call at physics rate,
+// so a fast ball cannot cross the reception window between rendered frames.
+class AssistedRelease {
+ constructor(){this.clear()}
+ clear(){this.request=null}
+ arm(request,time){this.request={...request,expires:time+1.25}}
+ update(match){
+  const r=this.request;if(!r)return null;
+  if(match.phase!=='rally'||match.autoplay){this.clear();return 'cancelled'}
+  if(match.time>r.expires){this.clear();return 'expired'}
+  if(!match.canHumanHit(.55))return null;
+  const partner=match.activePlayers.find(p=>p.id===r.receiver);
+  if(r.kind==='pass'&&!partner){this.clear();return 'cancelled'}
+  const target=partner?{x:partner.x,y:partner.y}:directedTarget(match.ball,r.direction||{x:0,y:-1},match.activePlayers);
+  const result=match.humanTargetHit({target,points:[],strength:r.strength,assisted:true});
+  if(result==='hit')this.clear();return result;
+ }
 }
 function touchRole(type,x,width,handedness,move){
  if(type==='mouse'||move)return 'action';
@@ -878,6 +933,90 @@ class GameAudio {
  }
 }
 
+const actionIds=['pass-button','hit-button','dash-button','jump-button'];
+function cleanLayouts(value){
+ const result={right:{},left:{}};
+ for(const hand of ['right','left'])for(const id of actionIds){
+  const p=value?.[hand]?.[id];
+  if(Number.isFinite(p?.x)&&Number.isFinite(p?.y))result[hand][id]={x:Math.max(0,Math.min(1,p.x)),y:Math.max(0,Math.min(1,p.y))};
+ }
+ return result;
+}
+function boundButton(p,width,height,top=100,size=76,safe={}){
+ const half=size/2+12;
+ return {x:Math.max(half+(safe.left||0),Math.min(width-half-(safe.right||0),p.x)),y:Math.max(Math.min(top+size/2,height-half-(safe.bottom||0)),Math.min(height-half-(safe.bottom||0),p.y))};
+}
+function buttonsOverlap(a,b,size=76){return Math.abs(a.x-b.x)<size+8&&Math.abs(a.y-b.y)<size+8}
+function resolveButtons(saved,hand,width,height,top=100,safe={},visible=actionIds){
+ const result={};
+ for(const id of [...visible].sort((a,b)=>Number(!!saved?.[b])-Number(!!saved?.[a]))){
+  const i=actionIds.indexOf(id);
+  const col=i%2,row=Math.floor(i/2),offset=col?54:146;
+  const initial=saved?.[id]?{x:saved[id].x*width,y:saved[id].y*height}:{x:hand==='left'?offset:width-offset,y:height-(row?56:150)};
+  let p=boundButton(initial,width,height,top,76,safe);
+  if(Object.values(result).some(q=>buttonsOverlap(p,q))){
+   const options=[];
+   for(let y=height-50-(safe.bottom||0);y>=top+38;y-=84)for(let x=50+(safe.left||0);x<=width-50-(safe.right||0);x+=84){
+    const q={x,y};if(!Object.values(result).some(r=>buttonsOverlap(q,r)))options.push(q);
+   }
+   options.sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y));
+   if(options.length)p=options[0];
+  }
+  result[id]=p;
+ }
+ return result;
+}
+function mountButtonEditor({surface,preferences,hand,menu,save,onOpen,onClose}){
+ let layouts=cleanLayouts(preferences),draft=null,drag=null,positions={};
+ const panel=document.getElementById('control-editor'),note=document.getElementById('editor-note');
+ const buttons=actionIds.map(id=>document.getElementById(id));
+ const dimensions=()=>surface.getBoundingClientRect();
+ const safeInsets=()=>{const s=getComputedStyle(surface.querySelector('.bottom-controls'));return {left:parseFloat(s.paddingLeft)||0,right:parseFloat(s.paddingRight)||0,bottom:parseFloat(s.paddingBottom)||0}};
+ function paint(){
+  const {width,height}=dimensions();
+  const top=Math.max(100,panel.hidden?100:panel.offsetTop+panel.offsetHeight+8);
+  positions=resolveButtons((draft||layouts)[hand()],hand(),width,height,top,safeInsets(),buttons.filter(b=>!b.hidden).map(b=>b.id));
+  buttons.forEach(b=>{if(positions[b.id]){b.style.left=positions[b.id].x+'px';b.style.top=positions[b.id].y+'px'}});
+ }
+ function place(id,p){
+  const rect=dimensions(),top=panel.offsetTop+panel.offsetHeight+8;
+  p=boundButton(p,rect.width,rect.height,top,76,safeInsets());
+  if(buttons.some(b=>b.id!==id&&!b.hidden&&buttonsOverlap(p,positions[b.id]))){note.textContent='Deja un poco de espacio entre los botones.';return false}
+  positions[id]=p;draft[hand()][id]={x:p.x/rect.width,y:p.y/rect.height};
+  const b=document.getElementById(id);b.style.left=p.x+'px';b.style.top=p.y+'px';
+  note.textContent='Arrastra los botones. También puedes usar Tab y las flechas.';return true;
+ }
+ function close(commit){
+  if(commit){layouts=draft;save(layouts)}
+  draft=null;drag=null;surface.classList.remove('editing-controls');panel.hidden=true;menu.hidden=false;paint();onClose();document.getElementById('edit-controls').focus();
+ }
+ document.getElementById('edit-controls').addEventListener('click',()=>{
+  onOpen();draft=cleanLayouts(layouts);menu.hidden=true;panel.hidden=false;surface.classList.add('editing-controls');paint();
+  note.textContent='Arrastra los botones. También puedes usar Tab y las flechas.';
+  document.getElementById('editor-save').focus();
+ });
+ document.getElementById('editor-save').addEventListener('click',()=>close(true));
+ document.getElementById('editor-cancel').addEventListener('click',()=>close(false));
+ document.getElementById('editor-reset').addEventListener('click',()=>{draft[hand()]={};paint();note.textContent='Posiciones originales. Pulsa Guardar para conservarlas.'});
+ for(const b of buttons){
+  for(const type of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','click'])b.addEventListener(type,e=>{
+   if(!draft)return;e.preventDefault();e.stopImmediatePropagation();
+   if(type==='pointerdown'&&!drag){const rect=dimensions();drag={id:e.pointerId,button:b.id,dx:e.clientX-rect.left-positions[b.id].x,dy:e.clientY-rect.top-positions[b.id].y};b.setPointerCapture(e.pointerId);b.focus()}
+   if(!drag||drag.id!==e.pointerId||drag.button!==b.id)return;
+   if(type==='pointermove'){const rect=dimensions();place(b.id,{x:e.clientX-rect.left-drag.dx,y:e.clientY-rect.top-drag.dy})}
+   if(['pointerup','pointercancel','lostpointercapture'].includes(type))drag=null;
+  },true);
+  b.addEventListener('keydown',e=>{
+   if(!draft||!e.key.startsWith('Arrow'))return;e.preventDefault();e.stopImmediatePropagation();
+   const p=positions[b.id],step=e.shiftKey?20:8;
+   place(b.id,{x:p.x+(e.key==='ArrowRight'?step:e.key==='ArrowLeft'?-step:0),y:p.y+(e.key==='ArrowDown'?step:e.key==='ArrowUp'?-step:0)});
+  });
+ }
+ window.addEventListener('keydown',e=>{if(draft&&e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close(false)}},true);
+ new ResizeObserver(()=>{drag=null;paint()}).observe(surface);paint();
+ return {refresh:paint,get editing(){return !!draft},get layouts(){return layouts}};
+}
+
 const preferenceKey='voley-preferences-v1';
 function readPreferences(storage){
  let value;try{value=JSON.parse(storage?.getItem(preferenceKey)||'null')}catch{}
@@ -885,6 +1024,7 @@ function readPreferences(storage){
   handedness:value?.handedness==='left'?'left':'right',
   map:['rooftop','mobile'].includes(value?.map)?value.map:'pavilion',
   mode:value?.mode==='2v2'?'2v2':'1v1',
+  buttonLayouts:cleanLayouts(value?.buttonLayouts),
   zoom:Object.fromEntries(['rooftop','pavilion','mobile'].map(id=>{
    const n=value?.zoom?.[id];return [id,typeof n==='number'&&Number.isFinite(n)?Math.round(Math.max(.8,Math.min(1.2,n))*10)/10:1];
   }))
@@ -898,23 +1038,18 @@ const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
-let simpleRequest=null,tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1};
+const releaseAssist=new AssistedRelease();
+let tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1},editingControls=false;
 function simpleHit(request){
- if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
- simpleRequest={...request,until:performance.now()+900};
- tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+900};
- message(request.kind==='pass'?'PASE PREPARADO':'TIRO · '+Math.round(request.strength*100)+'%',.6);
+ if(editingControls||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ if(match.ball.lastHit===0){message('ESPERA AL SIGUIENTE TOQUE',.8);return}
+ releaseAssist.arm(request,match.time);
+ tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+1250};
+ message(request.kind==='pass'?'PASE PREPARADO':'TIRO PREPARADO · '+Math.round(request.strength*100)+'%',.9);
 }
 function updateSimpleHit(){
- if(!simpleRequest)return;
- if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
- if(match.canHumanHit(.3)){
-  const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
-  const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
-  const strength=simpleRequest.strength;
-  const result=match.humanTargetHit({target,points:[],strength,assisted:true});
-  if(result)simpleRequest=null;
- }
+ const result=releaseAssist.update(match);
+ if(result==='expired')message('ACÉRCATE AL BALÓN Y VUELVE A SOLTAR',.9);
 }
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
 const poseHeights=[155,169,169,155,195,185,170,142];
@@ -967,7 +1102,12 @@ const surface=document.querySelector('.game-shell');
 const handChoice=document.getElementById('handedness'),movePad=document.getElementById('move-pad');
 handChoice.value=preferences.handedness;
 surface.dataset.handedness=handChoice.value;
-handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();savePreferences()});
+handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();buttonEditor.refresh();savePreferences()});
+const buttonEditor=mountButtonEditor({surface,preferences:preferences.buttonLayouts,hand:()=>handChoice.value,menu:ui.overlay,
+ save:layouts=>{preferences.buttonLayouts=layouts;savePreferences()},
+ onOpen:()=>{editingControls=true;controls.clear();keys.clear();charge=null;passPointer=null;releaseAssist.clear();tapFeedback=null;syncMovePad()},
+ onClose:()=>{editingControls=false}
+});
 function syncMovePad(){
  const move=controls.move;
  movePad.hidden=!move;
@@ -990,6 +1130,8 @@ function hideModal(){ui.overlay.hidden=true;ui.pause.disabled=false;canvas.focus
 function syncMode(){
  syncCameraLabel();
  const solo=match.mode==='1v1',count=solo?2:4;
+ document.getElementById('pass-button').hidden=solo;
+ buttonEditor.refresh();
  document.querySelector('.team-card strong').textContent=solo?'Tú contra un bot':'Tú + una compañera bot';
  document.querySelector('.team-card small').textContent=solo?'Toda tu mitad de la cancha':'Contra dos rivales bot';
  document.querySelector('.team-card b').innerHTML=solo?'1<span>vs</span>1':'2<span>vs</span>2';
@@ -1000,9 +1142,10 @@ function syncMode(){
  canvas.dataset.mode=match.mode;canvas.dataset.activePlayers=String(count);
  if(match.phase==='ready')message(solo?'1 CONTRA 1 · UN BOT':'2 CONTRA 2 · TRES BOTS',999);
  ui.watch.textContent=match.autoplay?'Jugar tú':'Ver partido de bots';
- canvas.setAttribute('aria-label',match.autoplay?`Partido ${match.mode} entre ${count} bots. Escape pausa.`:`Cancha ${match.mode}. WASD o flechas mueve. Espacio o Shift hace dash al moverte. Arrastra y suelta cerca del balón para apuntar a ese destino. Botón SALTO para saltar. Escape pausa.`);
+ canvas.setAttribute('aria-label',match.autoplay?`Partido ${match.mode} entre ${count} bots. Escape pausa.`:`Cancha ${match.mode}. WASD o flechas mueve. Espacio o Shift hace dash al moverte. Mantén TIRO y suelta para atacar al campo rival; muévete para elegir el lado. PASE en 2v2 busca a tu compañera. Botón SALTO para saltar. Escape pausa.`);
 }
 function handleEvent(e){
+ if(['start','serve','point','finish','pause'].includes(e.type)){releaseAssist.clear();charge=null;tapFeedback=null;lastShotDirection={x:0,y:-1}}
  if(e.type==='hitmiss')message('BALÓN FUERA DE ALCANCE · ACÉRCATE',1.1);
  if(e.type==='start'){
   surface.classList.toggle('watching',match.autoplay);
@@ -1060,7 +1203,7 @@ function aimPlan(){
  previewCache={aim:a,count:a.points.length,x:a.last.x,y:a.last.y,time:now,plan};return plan;
 }
 surface.addEventListener('pointerdown',e=>{
- if(match.autoplay||!ui.overlay.hidden||!['rally','countdown'].includes(match.phase)||e.button>0)return;
+ if(editingControls||match.autoplay||!ui.overlay.hidden||!['rally','countdown'].includes(match.phase)||e.button>0)return;
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
@@ -1079,6 +1222,7 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])surface.add
 });
 surface.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
+ if(editingControls)return;
  if(e.target instanceof HTMLButtonElement&&(e.key==='Enter'||(e.key===' '&&!ui.overlay.hidden)))return;
  if(e.target.closest('select,input'))return;
  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Shift','Escape','w','a','s','d','W','A','S','D'].includes(e.key)){
@@ -1112,11 +1256,11 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta hacia tu movimiento. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta: tu movimiento elige el lado del campo rival. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
- writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
+ writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,buttonLayouts:preferences.buttonLayouts,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
 }
 function syncCameraLabel(){
  const zoom=match.map.zoom??1,relative=zoom/cameraBases[match.map.id];ui['zoom-label'].textContent=Math.round(relative*100)+'%';
@@ -1374,7 +1518,8 @@ function loop(now){
  while(accumulator>=1/120){
   const {x,y}=movementInput();
   previousMotion=captureMotion(match);
-  match.update(1/120,{x,y});
+  if(!editingControls)match.update(1/120,{x,y});
+  updateSimpleHit();
   if(match.phase!=='paused')fx.update(1/120);
   if(['rally','point','countdown'].includes(match.phase)){
    if(match.phase==='rally')for(const p of match.activePlayers){
@@ -1403,9 +1548,11 @@ function loop(now){
  if(charge&&(!ui.overlay.hidden||match.phase!=='rally'))charge=null;
  const shotButton=document.getElementById('hit-button');
  const charged=charge?chargePower(performance.now()-charge.started):0;
- shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':'TIRO';
+ shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':releaseAssist.request?.kind==='attack'?'LISTO':'TIRO';
+ shotButton.classList.toggle('contact-ready',!editingControls&&match.canHumanHit(.55));
+ document.getElementById('pass-button').classList.toggle('contact-ready',!editingControls&&match.canHumanHit(.55));
  shotButton.style.setProperty('--charge',charged*100+'%');
- updateSimpleHit();syncMovePad();
+ syncMovePad();
  const marker=document.getElementById('tap-marker');
  marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
  if(!marker.hidden){const p=project(tapFeedback.target.x,tapFeedback.target.y);marker.style.left=(p.x/viewWidth*100)+'%';marker.style.top=(p.y/viewHeight*100)+'%';marker.textContent=String(tapFeedback.level);marker.dataset.level=tapFeedback.level}
@@ -1428,28 +1575,28 @@ Object.defineProperty(window,'volleyDebug',{value:()=>JSON.parse(JSON.stringify(
 const jumpButton=document.getElementById('jump-button');
 jumpButton.addEventListener('pointerdown',e=>{
  e.preventDefault();e.stopPropagation();
- if(!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
+ if(!editingControls&&!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
 });
-jumpButton.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
+jumpButton.addEventListener('click',e=>{if(e.detail===0&&!editingControls&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
 for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
  const button=document.getElementById(id);
- button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
- button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!editingControls&&!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('click',e=>{if(e.detail===0&&!editingControls&&!match.autoplay&&ui.overlay.hidden)act()});
 }
 const shotButton=document.getElementById('hit-button');
 shotButton.addEventListener('pointerdown',e=>{
  e.preventDefault();e.stopPropagation();
- if(charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ if(editingControls||charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
  charge={id:e.pointerId,started:performance.now()};shotButton.setPointerCapture(e.pointerId);
 });
 shotButton.addEventListener('pointerup',e=>{
  e.preventDefault();e.stopPropagation();if(charge?.id!==e.pointerId)return;
  const strength=chargePower(performance.now()-charge.started);charge=null;
  const d=movementInput(),direction=Math.hypot(d.x,d.y)>.1?d:lastShotDirection;
- simpleHit({kind:'attack',target:directedTarget(match.ball,direction),strength});
+ simpleHit({kind:'attack',direction:{...direction},target:directedTarget(match.ball,direction,match.activePlayers),strength});
 });
 for(const event of ['pointercancel','lostpointercapture'])shotButton.addEventListener(event,()=>charge=null);
-shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',target:directedTarget(match.ball,lastShotDirection),strength:0})});
+shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',direction:{...lastShotDirection},target:directedTarget(match.ball,lastShotDirection,match.activePlayers),strength:0})});
 const passButton=document.getElementById('pass-button');
 function buttonPass(){const partner=match.activePlayers.find(p=>p.team===0&&p.id!==0);if(partner)simpleHit({kind:'pass',receiver:partner.id,target:{x:partner.x,y:partner.y},strength:0});else message('PASE · NECESITAS COMPAÑERA EN 2v2',1)}
 let passPointer=null;

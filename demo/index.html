@@ -8,7 +8,7 @@
 <body>
 <main class="layout">
 <aside class="intro">
-  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.20</span></div>
+  <div class="eyebrow">KRAZEL GAMES <span>DEMO 0.21</span></div>
   <h1>Nos vemos<br>en la <em>cancha.</em></h1>
   <p class="lede">Traza hacia tu destino.<br>El golpe añade el arco sobre la red.</p>
   <div class="team-card"><span class="blue-dot"></span><div><strong>Tú contra un bot</strong><small>Toda tu mitad de la cancha</small></div><b>1<span>vs</span>1</b></div>
@@ -26,12 +26,13 @@
     <div class="modal">
       <span id="modal-tag" class="modal-tag">ELIGE TU CANCHA</span>
       <h2 id="modal-title">Tu equipo.<br>Tu siguiente punto.</h2>
-      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). TIRO apunta hacia tu movimiento: mantén para cargar y suelta para disparar. Quieto conserva tu última dirección; al inicio apunta hacia la red. PASE busca a tu compañera en 2v2. SALTO salta y DASH acelera. La potencia se carga hasta 100%. Puedes soltar un poco antes de recibir.<br>PC: mismos gestos con ratón; Espacio o Shift hace dash.</p>
+      <p id="modal-copy">Arrastra en la mitad izquierda para moverte (derecha si eres zurdo). Mantén TIRO y suelta: más tiempo, más potencia. Tu movimiento elige el lado del campo rival; el tiro ayuda a buscar un hueco y superar la red. Puedes soltar hasta 1,25 s antes de recibir. PASE busca a tu compañera en 2v2. SALTO y DASH tienen su botón.<br>PC: WASD mueve; Espacio o Shift hace dash.</p>
       <label class="mode-choice">Mapa <select id="map" aria-label="Mapa de la cancha"><option value="pavilion" selected>Pabellón · escala real</option><option value="mobile">Cancha móvil · pantalla completa</option><option value="rooftop">Azotea · original</option></select></label>
       <small id="map-note" class="map-note">18 × 9 m · personajes 1,80 m · red 2,43 m</small>
       <div class="camera-choice"><span>Cámara</span><div><button id="zoom-out" type="button" aria-label="Alejar cámara">−</button><output id="zoom-label" aria-live="polite">100%</output><button id="zoom-in" type="button" aria-label="Acercar cámara">+</button></div></div>
       <label class="mode-choice">Controles <select id="handedness" aria-label="Diestro o zurdo"><option value="right">Diestro · mover a la izquierda</option><option value="left">Zurdo · mover a la derecha</option></select></label><label class="mode-choice">Formato <select id="mode" aria-label="Formato de partido"><option value="1v1" selected>1 contra 1 · un bot</option><option value="2v2">2 contra 2 · tres bots</option></select></label>
       <small class="map-note">Cambiar mapa o formato inicia otro partido.</small>
+      <button id="edit-controls" class="secondary edit-controls">↔ Colocar botones</button>
       <button id="play" class="primary" disabled>Cargando cancha…</button>
       <button id="watch" class="secondary" disabled>Ver partido de bots</button>
       <button id="practice" class="secondary" disabled>Practicar golpes · balón preparado</button>
@@ -39,6 +40,11 @@
       <div id="modal-foot">Primero a 7 · Movimiento + acción manual</div>
     </div>
   </div>
+  <section id="control-editor" aria-label="Colocar botones" hidden>
+    <div><span class="modal-tag">TUS CONTROLES</span><h2>Colócalos a tu gusto</h2></div>
+    <p id="editor-note" role="status">Arrastra los botones. También puedes usar Tab y las flechas.</p>
+    <div class="editor-actions"><button id="editor-reset">Restablecer</button><button id="editor-cancel">Cancelar</button><button id="editor-save">Guardar</button></div>
+  </section>
   <span id="match-status" class="sr-only" role="status"></span>
 </section>
 </main>

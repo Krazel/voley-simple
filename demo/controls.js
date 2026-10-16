@@ -1,8 +1,35 @@
 // Two independent pointer owners: lifting/cancelling one never consumes the other.
 export function chargePower(milliseconds){return Math.max(0,Math.min(1,milliseconds/850))}
-export function directedTarget(origin,direction){
+export function directedTarget(origin,direction,players=[]){
  const n=Math.hypot(direction.x,direction.y),d=n>.1?{x:direction.x/n,y:direction.y/n}:{x:0,y:-1};
- return {x:Math.max(.4,Math.min(7.6,origin.x+d.x*10)),y:Math.max(.6,Math.min(15.4,origin.y+d.y*10))};
+ // Movement steers a safe attacking lane, never a shot back into our own half.
+ // Small adjustments seek space without overriding the player's chosen side.
+ const desired={x:Math.max(1.1,Math.min(6.9,origin.x+d.x*4.5)),y:d.y>.25?5.4:d.y<-.25?2.6:4};
+ const rivals=players.filter(p=>p.team===1),candidates=[];
+ for(const dx of [-.65,0,.65])for(const dy of [-.5,0,.5]){
+  const p={x:Math.max(1.1,Math.min(6.9,desired.x+dx)),y:Math.max(1.5,Math.min(6.2,desired.y+dy))};
+  const space=Math.min(8,...rivals.map(r=>Math.hypot(r.x-p.x,r.y-p.y)));
+  candidates.push({...p,score:space-Math.hypot(p.x-desired.x,p.y-desired.y)*(rivals.length?.45:1.1)});
+ }
+ const best=candidates.sort((a,b)=>b.score-a.score)[0];return {x:best.x,y:best.y};
+}
+// One deliberate release waits for the next legal contact. Call at physics rate,
+// so a fast ball cannot cross the reception window between rendered frames.
+export class AssistedRelease {
+ constructor(){this.clear()}
+ clear(){this.request=null}
+ arm(request,time){this.request={...request,expires:time+1.25}}
+ update(match){
+  const r=this.request;if(!r)return null;
+  if(match.phase!=='rally'||match.autoplay){this.clear();return 'cancelled'}
+  if(match.time>r.expires){this.clear();return 'expired'}
+  if(!match.canHumanHit(.55))return null;
+  const partner=match.activePlayers.find(p=>p.id===r.receiver);
+  if(r.kind==='pass'&&!partner){this.clear();return 'cancelled'}
+  const target=partner?{x:partner.x,y:partner.y}:directedTarget(match.ball,r.direction||{x:0,y:-1},match.activePlayers);
+  const result=match.humanTargetHit({target,points:[],strength:r.strength,assisted:true});
+  if(result==='hit')this.clear();return result;
+ }
 }
 export function touchRole(type,x,width,handedness,move){
  if(type==='mouse'||move)return 'action';

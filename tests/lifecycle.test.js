@@ -36,11 +36,11 @@ test('pause cancels queued hit without reporting an expired gesture after resume
 
 test('existing preferences survive reload, reject malformed values and tolerate unavailable storage',()=>{
  let saved;const storage={setItem:(_,v)=>saved=v,getItem:()=>saved};
- const choices={handedness:'left',map:'rooftop',mode:'2v2',zoom:{rooftop:.9,pavilion:1.2,mobile:1}};
+ const choices={handedness:'left',map:'rooftop',mode:'2v2',buttonLayouts:{right:{},left:{}},zoom:{rooftop:.9,pavilion:1.2,mobile:1}};
  assert.equal(writePreferences(storage,choices),true);assert.deepEqual(readPreferences(storage),choices);
- saved='broken';assert.deepEqual(readPreferences(storage),{handedness:'right',map:'pavilion',mode:'1v1',zoom:{rooftop:1,pavilion:1,mobile:1}});
- saved=JSON.stringify({map:'unknown',mode:'unknown',zoom:{rooftop:100,pavilion:'1.1'}});
- assert.deepEqual(readPreferences(storage),{handedness:'right',map:'pavilion',mode:'1v1',zoom:{rooftop:1.2,pavilion:1,mobile:1}});
+ saved='broken';assert.deepEqual(readPreferences(storage),{handedness:'right',map:'pavilion',mode:'1v1',buttonLayouts:{right:{},left:{}},zoom:{rooftop:1,pavilion:1,mobile:1}});
+ saved=JSON.stringify({map:'unknown',mode:'unknown',buttonLayouts:{right:{},left:{}},zoom:{rooftop:100,pavilion:'1.1'}});
+ assert.deepEqual(readPreferences(storage),{handedness:'right',map:'pavilion',mode:'1v1',buttonLayouts:{right:{},left:{}},zoom:{rooftop:1.2,pavilion:1,mobile:1}});
  const blocked={getItem(){throw Error('blocked')},setItem(){throw Error('blocked')}};
  assert.equal(writePreferences(blocked,choices),false);assert.equal(readPreferences(blocked).map,'pavilion');
 });

@@ -4,7 +4,7 @@ import {chargePower,directedTarget} from '../demo/controls.js';
 import {Match} from '../demo/engine.js';
 test('charge saturates and shot follows movement direction with forward fallback',()=>{
  assert.equal(chargePower(0),0);assert.equal(chargePower(425),.5);assert.equal(chargePower(3000),1);
- assert.deepEqual(directedTarget({x:4,y:12},{x:0,y:0}),{x:4,y:2});
+ assert.deepEqual(directedTarget({x:4,y:12},{x:0,y:0}),{x:4,y:2.6});
  assert(directedTarget({x:4,y:12},{x:1,y:-1}).x>4);
  assert(directedTarget({x:4,y:12},{x:-1,y:-1}).x<4);
 });

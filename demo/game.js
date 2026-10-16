@@ -1,34 +1,30 @@
 import {drawPavilion,drawMobileCourt} from './pavilion.js';
 import {courtConfig} from './maps.js';
 import {Match,clamp} from './engine.js';
-import {StrokeControls,touchRole,chargePower,directedTarget} from './controls.js';
+import {StrokeControls,touchRole,chargePower,directedTarget,AssistedRelease} from './controls.js';
 import {trajectoryPlan,flightPreview} from './trajectory.js';
 import {projectCourt,unprojectCourt} from './projection.js';
 import {animationFrame,captureMotion,interpolateMotion,animatePose} from './animation.js';
 import {Effects} from './effects.js';
 import {GameAudio} from './audio.js';
+import {mountButtonEditor} from './button-layout.js';
 import {readPreferences,writePreferences} from './preferences.js';
 const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d');
 const ui=Object.fromEntries(['overlay','play','watch','restart','pause','sound','rally','action','callout','modal-tag','modal-title','modal-copy','modal-foot','score-blue','score-orange','match-status','mode','practice','map','map-note','zoom-out','zoom-in','zoom-label'].map(id=>[id,document.getElementById(id)]));
 const actionLabel=ui.action.querySelector('strong'),powerBar=ui.action.querySelector('i');
 let ready=false,calloutUntil=0,trail=[],last=performance.now(),accumulator=0,previousMotion=null,renderPlayers=[],renderBall=null,visualTime=0;
-let simpleRequest=null,tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1};
+const releaseAssist=new AssistedRelease();
+let tapFeedback=null,charge=null,lastShotDirection={x:0,y:-1},editingControls=false;
 function simpleHit(request){
- if(match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
- simpleRequest={...request,until:performance.now()+900};
- tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+900};
- message(request.kind==='pass'?'PASE PREPARADO':'TIRO · '+Math.round(request.strength*100)+'%',.6);
+ if(editingControls||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ if(match.ball.lastHit===0){message('ESPERA AL SIGUIENTE TOQUE',.8);return}
+ releaseAssist.arm(request,match.time);
+ tapFeedback={target:request.target,level:Math.round(1+request.strength*2),until:performance.now()+1250};
+ message(request.kind==='pass'?'PASE PREPARADO':'TIRO PREPARADO · '+Math.round(request.strength*100)+'%',.9);
 }
 function updateSimpleHit(){
- if(!simpleRequest)return;
- if(!ui.overlay.hidden||match.phase!=='rally'||performance.now()>simpleRequest.until){simpleRequest=null;return}
- if(match.canHumanHit(.3)){
-  const partner=match.activePlayers.find(p=>p.id===simpleRequest.receiver);
-  const target=partner?{x:partner.x,y:partner.y}:simpleRequest.target;
-  const strength=simpleRequest.strength;
-  const result=match.humanTargetHit({target,points:[],strength,assisted:true});
-  if(result)simpleRequest=null;
- }
+ const result=releaseAssist.update(match);
+ if(result==='expired')message('ACÉRCATE AL BALÓN Y VUELVE A SOLTAR',.9);
 }
 const keys=new Set(),assets={},frames=[],animationFrames=[],actionFrames=[];
 const poseHeights=[155,169,169,155,195,185,170,142];
@@ -81,7 +77,12 @@ const surface=document.querySelector('.game-shell');
 const handChoice=document.getElementById('handedness'),movePad=document.getElementById('move-pad');
 handChoice.value=preferences.handedness;
 surface.dataset.handedness=handChoice.value;
-handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();savePreferences()});
+handChoice.addEventListener('change',()=>{controls.clear();surface.dataset.handedness=handChoice.value;syncMovePad();buttonEditor.refresh();savePreferences()});
+const buttonEditor=mountButtonEditor({surface,preferences:preferences.buttonLayouts,hand:()=>handChoice.value,menu:ui.overlay,
+ save:layouts=>{preferences.buttonLayouts=layouts;savePreferences()},
+ onOpen:()=>{editingControls=true;controls.clear();keys.clear();charge=null;passPointer=null;releaseAssist.clear();tapFeedback=null;syncMovePad()},
+ onClose:()=>{editingControls=false}
+});
 function syncMovePad(){
  const move=controls.move;
  movePad.hidden=!move;
@@ -104,6 +105,8 @@ function hideModal(){ui.overlay.hidden=true;ui.pause.disabled=false;canvas.focus
 function syncMode(){
  syncCameraLabel();
  const solo=match.mode==='1v1',count=solo?2:4;
+ document.getElementById('pass-button').hidden=solo;
+ buttonEditor.refresh();
  document.querySelector('.team-card strong').textContent=solo?'Tú contra un bot':'Tú + una compañera bot';
  document.querySelector('.team-card small').textContent=solo?'Toda tu mitad de la cancha':'Contra dos rivales bot';
  document.querySelector('.team-card b').innerHTML=solo?'1<span>vs</span>1':'2<span>vs</span>2';
@@ -114,9 +117,10 @@ function syncMode(){
  canvas.dataset.mode=match.mode;canvas.dataset.activePlayers=String(count);
  if(match.phase==='ready')message(solo?'1 CONTRA 1 · UN BOT':'2 CONTRA 2 · TRES BOTS',999);
  ui.watch.textContent=match.autoplay?'Jugar tú':'Ver partido de bots';
- canvas.setAttribute('aria-label',match.autoplay?`Partido ${match.mode} entre ${count} bots. Escape pausa.`:`Cancha ${match.mode}. WASD o flechas mueve. Espacio o Shift hace dash al moverte. Arrastra y suelta cerca del balón para apuntar a ese destino. Botón SALTO para saltar. Escape pausa.`);
+ canvas.setAttribute('aria-label',match.autoplay?`Partido ${match.mode} entre ${count} bots. Escape pausa.`:`Cancha ${match.mode}. WASD o flechas mueve. Espacio o Shift hace dash al moverte. Mantén TIRO y suelta para atacar al campo rival; muévete para elegir el lado. PASE en 2v2 busca a tu compañera. Botón SALTO para saltar. Escape pausa.`);
 }
 function handleEvent(e){
+ if(['start','serve','point','finish','pause'].includes(e.type)){releaseAssist.clear();charge=null;tapFeedback=null;lastShotDirection={x:0,y:-1}}
  if(e.type==='hitmiss')message('BALÓN FUERA DE ALCANCE · ACÉRCATE',1.1);
  if(e.type==='start'){
   surface.classList.toggle('watching',match.autoplay);
@@ -174,7 +178,7 @@ function aimPlan(){
  previewCache={aim:a,count:a.points.length,x:a.last.x,y:a.last.y,time:now,plan};return plan;
 }
 surface.addEventListener('pointerdown',e=>{
- if(match.autoplay||!ui.overlay.hidden||!['rally','countdown'].includes(match.phase)||e.button>0)return;
+ if(editingControls||match.autoplay||!ui.overlay.hidden||!['rally','countdown'].includes(match.phase)||e.button>0)return;
  if(e.target.closest('button,select,input,a'))return;
  canvasRect=canvas.getBoundingClientRect();
  const point=eventPoint(e);
@@ -193,6 +197,7 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])surface.add
 });
 surface.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{
+ if(editingControls)return;
  if(e.target instanceof HTMLButtonElement&&(e.key==='Enter'||(e.key===' '&&!ui.overlay.hidden)))return;
  if(e.target.closest('select,input'))return;
  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Shift','Escape','w','a','s','d','W','A','S','D'].includes(e.key)){
@@ -226,11 +231,11 @@ function changeArena(){
  savePreferences();
  ui['score-blue'].textContent=ui['score-orange'].textContent='0';
  ui['modal-foot'].textContent='Primero a 7 · '+match.map.name;
- modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta hacia tu movimiento. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
+ modal('ELIGE TU PARTIDO','Tu cancha.<br>Tu siguiente punto.','Arrastra para moverte. Mantén TIRO y suelta: tu movimiento elige el lado del campo rival. PASE busca a tu compañera. SALTO y DASH tienen su botón.',(match.autoplay?'Ver':'Jugar')+' · '+match.mode.replace('v',' vs '));
 }
 ui.mode.addEventListener('change',changeArena);ui.map.addEventListener('change',changeArena);
 function savePreferences(){
- writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
+ writePreferences(preferenceStorage,{handedness:handChoice.value,map:match.map.id,mode:match.mode,buttonLayouts:preferences.buttonLayouts,zoom:Object.fromEntries(Object.entries(cameraZooms).map(([id,zoom])=>[id,zoom/cameraBases[id]]))});
 }
 function syncCameraLabel(){
  const zoom=match.map.zoom??1,relative=zoom/cameraBases[match.map.id];ui['zoom-label'].textContent=Math.round(relative*100)+'%';
@@ -488,7 +493,8 @@ function loop(now){
  while(accumulator>=1/120){
   const {x,y}=movementInput();
   previousMotion=captureMotion(match);
-  match.update(1/120,{x,y});
+  if(!editingControls)match.update(1/120,{x,y});
+  updateSimpleHit();
   if(match.phase!=='paused')fx.update(1/120);
   if(['rally','point','countdown'].includes(match.phase)){
    if(match.phase==='rally')for(const p of match.activePlayers){
@@ -517,9 +523,11 @@ function loop(now){
  if(charge&&(!ui.overlay.hidden||match.phase!=='rally'))charge=null;
  const shotButton=document.getElementById('hit-button');
  const charged=charge?chargePower(performance.now()-charge.started):0;
- shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':'TIRO';
+ shotButton.textContent=charge?'TIRO '+Math.round(charged*100)+'%':releaseAssist.request?.kind==='attack'?'LISTO':'TIRO';
+ shotButton.classList.toggle('contact-ready',!editingControls&&match.canHumanHit(.55));
+ document.getElementById('pass-button').classList.toggle('contact-ready',!editingControls&&match.canHumanHit(.55));
  shotButton.style.setProperty('--charge',charged*100+'%');
- updateSimpleHit();syncMovePad();
+ syncMovePad();
  const marker=document.getElementById('tap-marker');
  marker.hidden=!tapFeedback||performance.now()>tapFeedback.until||!ui.overlay.hidden;
  if(!marker.hidden){const p=project(tapFeedback.target.x,tapFeedback.target.y);marker.style.left=(p.x/viewWidth*100)+'%';marker.style.top=(p.y/viewHeight*100)+'%';marker.textContent=String(tapFeedback.level);marker.dataset.level=tapFeedback.level}
@@ -542,28 +550,28 @@ Object.defineProperty(window,'volleyDebug',{value:()=>JSON.parse(JSON.stringify(
 const jumpButton=document.getElementById('jump-button');
 jumpButton.addEventListener('pointerdown',e=>{
  e.preventDefault();e.stopPropagation();
- if(!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
+ if(!editingControls&&!match.autoplay&&ui.overlay.hidden&&['rally','countdown'].includes(match.phase))match.humanJump({x:0,y:0});
 });
-jumpButton.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
+jumpButton.addEventListener('click',e=>{if(e.detail===0&&!editingControls&&!match.autoplay&&ui.overlay.hidden)match.humanJump({x:0,y:0})});
 for(const [id,act] of [['dash-button',()=>match.humanDash(movementInput())]]){
  const button=document.getElementById(id);
- button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!match.autoplay&&ui.overlay.hidden)act()});
- button.addEventListener('click',e=>{if(e.detail===0&&!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!editingControls&&!match.autoplay&&ui.overlay.hidden)act()});
+ button.addEventListener('click',e=>{if(e.detail===0&&!editingControls&&!match.autoplay&&ui.overlay.hidden)act()});
 }
 const shotButton=document.getElementById('hit-button');
 shotButton.addEventListener('pointerdown',e=>{
  e.preventDefault();e.stopPropagation();
- if(charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
+ if(editingControls||charge||match.autoplay||!ui.overlay.hidden||match.phase!=='rally')return;
  charge={id:e.pointerId,started:performance.now()};shotButton.setPointerCapture(e.pointerId);
 });
 shotButton.addEventListener('pointerup',e=>{
  e.preventDefault();e.stopPropagation();if(charge?.id!==e.pointerId)return;
  const strength=chargePower(performance.now()-charge.started);charge=null;
  const d=movementInput(),direction=Math.hypot(d.x,d.y)>.1?d:lastShotDirection;
- simpleHit({kind:'attack',target:directedTarget(match.ball,direction),strength});
+ simpleHit({kind:'attack',direction:{...direction},target:directedTarget(match.ball,direction,match.activePlayers),strength});
 });
 for(const event of ['pointercancel','lostpointercapture'])shotButton.addEventListener(event,()=>charge=null);
-shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',target:directedTarget(match.ball,lastShotDirection),strength:0})});
+shotButton.addEventListener('click',e=>{if(e.detail===0)simpleHit({kind:'attack',direction:{...lastShotDirection},target:directedTarget(match.ball,lastShotDirection,match.activePlayers),strength:0})});
 const passButton=document.getElementById('pass-button');
 function buttonPass(){const partner=match.activePlayers.find(p=>p.team===0&&p.id!==0);if(partner)simpleHit({kind:'pass',receiver:partner.id,target:{x:partner.x,y:partner.y},strength:0});else message('PASE · NECESITAS COMPAÑERA EN 2v2',1)}
 let passPointer=null;

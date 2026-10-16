@@ -89,7 +89,7 @@ export class Match {
  humanTargetHit(request){
   if(!request||!Number.isFinite(request.target?.x+request.target?.y))return null;
   const copy={target:{...request.target},strength:request.strength,tapLevel:request.tapLevel,points:(request.points||[]).map(p=>({...p})),screenPoints:request.screenPoints?.map(p=>({...p}))};
-  if(this.canHumanHit(request.assisted?.3:0)||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
+  if(this.canHumanHit(request.assisted?.55:0)||(this.time-this.lastReach<=.12&&this.canHumanHit(.3))){this.humanTargetShot(copy);return 'hit'}
   if(!this.canHumanAim())return null;
   this.pendingHit={request:copy,expires:this.time+.2};return 'buffered';
  }
